@@ -1,0 +1,24 @@
+{
+	"schemaVersion": 1,
+	"id": "codebreaker",
+	"version": "${version}",
+	"name": "Codebreaker",
+	"description": "A pattern uncovering minigame for Minecraft.",
+	"authors": [
+		"haykam821"
+	],
+	"contact": {
+		"homepage": "https://github.com/haykam821/Codebreaker#readme",
+		"issues": "https://github.com/haykam821/Codebreaker/issues"
+	},
+	"entrypoints": {
+		"main": [
+			"io.github.haykam821.codebreaker.Main"
+		]
+	},
+	"license": "MIT",
+	"icon": "assets/codebreaker/icon.png",
+	"depends": {
+		"fabricloader": ">=0.4.0"
+	}
+}
