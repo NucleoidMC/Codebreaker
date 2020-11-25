@@ -1,5 +1,6 @@
 {
 	"type": "codebreaker:codebreaker",
+	"name": "Codebreaker",
 	"chances": 8,
 	"spaces": 4,
 	"players": {

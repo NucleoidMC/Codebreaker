@@ -1,7 +1,5 @@
 package io.github.haykam821.codebreaker.game.phase;
 
-import java.util.concurrent.CompletableFuture;
-
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMap;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMapBuilder;
@@ -9,9 +7,11 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameMode;
+import xyz.nucleoid.fantasy.BubbleWorldConfig;
 import xyz.nucleoid.plasmid.game.GameOpenContext;
+import xyz.nucleoid.plasmid.game.GameOpenProcedure;
+import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.GameWaitingLobby;
-import xyz.nucleoid.plasmid.game.GameWorld;
 import xyz.nucleoid.plasmid.game.StartResult;
 import xyz.nucleoid.plasmid.game.config.PlayerConfig;
 import xyz.nucleoid.plasmid.game.event.OfferPlayerListener;
@@ -19,45 +19,42 @@ import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
 import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
 import xyz.nucleoid.plasmid.game.event.RequestStartListener;
 import xyz.nucleoid.plasmid.game.player.JoinResult;
-import xyz.nucleoid.plasmid.world.bubble.BubbleWorldConfig;
 
 public class CodebreakerWaitingPhase {
-	private final GameWorld gameWorld;
+	private final GameSpace gameSpace;
 	private final CodebreakerMap map;
 	private final CodebreakerConfig config;
 
-	public CodebreakerWaitingPhase(GameWorld gameWorld, CodebreakerMap map, CodebreakerConfig config) {
-		this.gameWorld = gameWorld;
+	public CodebreakerWaitingPhase(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config) {
+		this.gameSpace = gameSpace;
 		this.map = map;
 		this.config = config;
 	}
 
-	public static CompletableFuture<GameWorld> open(GameOpenContext<CodebreakerConfig> context) {
+	public static GameOpenProcedure open(GameOpenContext<CodebreakerConfig> context) {
 		CodebreakerMapBuilder mapBuilder = new CodebreakerMapBuilder(context.getConfig());
+		CodebreakerMap map = mapBuilder.create();
 
-		return mapBuilder.create().thenCompose(map -> {
-			BubbleWorldConfig worldConfig = new BubbleWorldConfig()
-				.setGenerator(map.createGenerator(context.getServer()))
-				.setDefaultGameMode(GameMode.ADVENTURE);
+		BubbleWorldConfig worldConfig = new BubbleWorldConfig()
+			.setGenerator(map.createGenerator(context.getServer()))
+			.setDefaultGameMode(GameMode.ADVENTURE);
 
-			return context.openWorld(worldConfig).thenApply(gameWorld -> {
-				CodebreakerWaitingPhase waiting = new CodebreakerWaitingPhase(gameWorld, map, context.getConfig());
+		return context.createOpenProcedure(worldConfig, game -> {
+			CodebreakerWaitingPhase waiting = new CodebreakerWaitingPhase(game.getSpace(), map, context.getConfig());
 
-				return GameWaitingLobby.open(gameWorld, context.getConfig().getPlayerConfig(), game -> {
-					CodebreakerActivePhase.setRules(game);
+			GameWaitingLobby.applyTo(game, context.getConfig().getPlayerConfig());
+			CodebreakerActivePhase.setRules(game);
 
-					// Listeners
-					game.on(PlayerAddListener.EVENT, waiting::addPlayer);
-					game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
-					game.on(OfferPlayerListener.EVENT, waiting::offerPlayer);
-					game.on(RequestStartListener.EVENT, waiting::requestStart);
-				});
-			});
+			// Listeners
+			game.on(PlayerAddListener.EVENT, waiting::addPlayer);
+			game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
+			game.on(OfferPlayerListener.EVENT, waiting::offerPlayer);
+			game.on(RequestStartListener.EVENT, waiting::requestStart);
 		});
 	}
 
 	private boolean isFull() {
-		return this.gameWorld.getPlayerCount() >= this.config.getPlayerConfig().getMaxPlayers();
+		return this.gameSpace.getPlayerCount() >= this.config.getPlayerConfig().getMaxPlayers();
 	}
 
 	public JoinResult offerPlayer(ServerPlayerEntity player) {
@@ -66,20 +63,20 @@ public class CodebreakerWaitingPhase {
 
 	public StartResult requestStart() {
 		PlayerConfig playerConfig = this.config.getPlayerConfig();
-		if (this.gameWorld.getPlayerCount() < playerConfig.getMinPlayers()) {
+		if (this.gameSpace.getPlayerCount() < playerConfig.getMinPlayers()) {
 			return StartResult.NOT_ENOUGH_PLAYERS;
 		}
 
-		CodebreakerActivePhase.open(this.gameWorld, this.map, this.config);
+		CodebreakerActivePhase.open(this.gameSpace, this.map, this.config);
 		return StartResult.OK;
 	}
 
 	public void addPlayer(ServerPlayerEntity player) {
-		CodebreakerActivePhase.spawn(this.gameWorld.getWorld(), this.map, player);
+		CodebreakerActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
 	}
 
 	public ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
-		CodebreakerActivePhase.spawn(this.gameWorld.getWorld(), this.map, player);
+		CodebreakerActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
 		return ActionResult.SUCCESS;
 	}
 }

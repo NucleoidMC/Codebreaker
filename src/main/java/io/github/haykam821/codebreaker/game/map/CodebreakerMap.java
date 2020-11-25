@@ -3,8 +3,8 @@ package io.github.haykam821.codebreaker.game.map;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
-import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
-import xyz.nucleoid.plasmid.game.map.template.TemplateChunkGenerator;
+import xyz.nucleoid.plasmid.map.template.MapTemplate;
+import xyz.nucleoid.plasmid.map.template.TemplateChunkGenerator;
 import xyz.nucleoid.plasmid.util.BlockBounds;
 
 public final class CodebreakerMap {
@@ -27,6 +27,6 @@ public final class CodebreakerMap {
 	}
 
 	public ChunkGenerator createGenerator(MinecraftServer server) {
-		return new TemplateChunkGenerator(server, this.template, BlockPos.ORIGIN);
+		return new TemplateChunkGenerator(server, this.template);
 	}
 }
