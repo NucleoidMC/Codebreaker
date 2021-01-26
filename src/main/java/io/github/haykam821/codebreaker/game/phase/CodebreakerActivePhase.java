@@ -1,7 +1,8 @@
 package io.github.haykam821.codebreaker.game.phase;
 
 import java.util.List;
-import java.util.stream.Collectors;
+
+import com.google.common.collect.Lists;
 
 import io.github.haykam821.codebreaker.Main;
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
@@ -28,23 +29,23 @@ import xyz.nucleoid.plasmid.game.event.GameOpenListener;
 import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
 import xyz.nucleoid.plasmid.game.event.PlayerDamageListener;
 import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
+import xyz.nucleoid.plasmid.game.event.PlayerRemoveListener;
 import xyz.nucleoid.plasmid.game.event.UseBlockListener;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
-import xyz.nucleoid.plasmid.util.PlayerRef;
 
 public class CodebreakerActivePhase {
 	private final GameSpace gameSpace;
 	private final ServerWorld world;
 	private final CodebreakerMap map;
 	private final CodebreakerConfig config;
-	private final List<PlayerRef> players;
+	private final List<ServerPlayerEntity> players;
 	private final Code correctCode;
 	private Code queuedCode;
 	private int queuedIndex = 0;
 	private ServerPlayerEntity currentPlayer;
 
-	public CodebreakerActivePhase(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config, List<PlayerRef> players) {
+	public CodebreakerActivePhase(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config, List<ServerPlayerEntity> players) {
 		this.gameSpace = gameSpace;
 		this.world = gameSpace.getWorld();
 		this.map = map;
@@ -63,8 +64,7 @@ public class CodebreakerActivePhase {
 	}
 
 	public static void open(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config) {
-		List<PlayerRef> players = gameSpace.getPlayers().stream().map(PlayerRef::of).collect(Collectors.toList());
-		CodebreakerActivePhase phase = new CodebreakerActivePhase(gameSpace, map, config, players);
+		CodebreakerActivePhase phase = new CodebreakerActivePhase(gameSpace, map, config, Lists.newArrayList(gameSpace.getPlayers()));
 
 		gameSpace.openGame(game -> {
 			CodebreakerActivePhase.setRules(game);
@@ -74,20 +74,19 @@ public class CodebreakerActivePhase {
 			game.on(PlayerAddListener.EVENT, phase::addPlayer);
 			game.on(PlayerDamageListener.EVENT, phase::onPlayerDamage);
 			game.on(PlayerDeathListener.EVENT, phase::onPlayerDeath);
+			game.on(PlayerRemoveListener.EVENT, phase::onPlayerRemove);
 			game.on(UseBlockListener.EVENT, phase::onUseBlock);
 		});
 	}
 
 	private void open() {
-		for (PlayerRef playerRef : this.players) {
-			playerRef.ifOnline(this.world, player -> {
-				player.setGameMode(GameMode.ADVENTURE);
-				CodebreakerActivePhase.spawn(this.world, this.map, player);
+		for (ServerPlayerEntity player : this.players) {
+			player.setGameMode(GameMode.ADVENTURE);
+			CodebreakerActivePhase.spawn(this.world, this.map, player);
 
-				if (this.currentPlayer == null) {
-					this.currentPlayer = playerRef.getEntity(this.world);
-				}
-			});
+			if (this.currentPlayer == null) {
+				this.currentPlayer = player;
+			}
 		}
 	}
 
@@ -110,10 +109,10 @@ public class CodebreakerActivePhase {
 	}
 
 	private void switchPlayer() {
-		int currentIndex = this.players.indexOf(PlayerRef.of(this.currentPlayer));
+		int currentIndex = this.players.indexOf(this.currentPlayer);
 
 		ServerPlayerEntity previousPlayer = this.currentPlayer;
-		this.currentPlayer = this.players.get(currentIndex % this.players.size()).getEntity(this.world);
+		this.currentPlayer = this.players.get(currentIndex % this.players.size());
 
 		if (previousPlayer != this.currentPlayer) {
 			this.gameSpace.getPlayers().sendMessage(new TranslatableText("text.codebreaker.next_turn", this.currentPlayer).formatted(Formatting.GOLD));
@@ -141,25 +140,39 @@ public class CodebreakerActivePhase {
 		this.queuedIndex += 1;
 	}
 
+	private void createQueuedCode() {
+		this.queuedCode = new Code(this.config.getSpaces());
+	}
+
+	private void eraseQueuedCode(ServerPlayerEntity player) {
+		this.createQueuedCode();
+		player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BIT, SoundCategory.BLOCKS, 1, 0.5f);
+	}
+
+	private void queueCodePeg(ServerPlayerEntity player, BlockState state) {
+		if (this.queuedCode == null) {
+			this.createQueuedCode();
+		}
+		this.queuedCode.setNext(state);
+		player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BIT, SoundCategory.BLOCKS, 1, 2);
+	}
+
 	private ActionResult onUseBlock(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
 		if (hand != Hand.MAIN_HAND) return ActionResult.FAIL;
+		if (!this.players.contains(player)) return ActionResult.FAIL;
 
 		BlockState state = player.getEntityWorld().getBlockState(hitResult.getBlockPos());
 		if (!state.isIn(Main.CODE_PEGS) && !state.isOf(Blocks.BEDROCK)) return ActionResult.FAIL;
 
 		if (player != this.currentPlayer) {
 			player.sendMessage(new TranslatableText("text.codebreaker.other_turn", this.currentPlayer.getDisplayName()).formatted(Formatting.RED), false);
+			return ActionResult.FAIL;
 		}
 	
 		if (state.isOf(Blocks.BEDROCK)) {
-			this.queuedCode = new Code(this.config.getSpaces());
-			player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BIT, SoundCategory.BLOCKS, 1, 0.5f);
+			this.eraseQueuedCode(player);
 		} else {
-			if (this.queuedCode == null) {
-				this.queuedCode = new Code(this.config.getSpaces());
-			}
-			this.queuedCode.setNext(state);
-			player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BIT, SoundCategory.BLOCKS, 1, 2);
+			this.queueCodePeg(player, state);
 		}
 
 		if (this.queuedCode.isCompletelyFilled()) {
@@ -176,10 +189,17 @@ public class CodebreakerActivePhase {
 	}
 
 	private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
-		if (this.players.contains(PlayerRef.of(player))) {
+		if (this.players.contains(player)) {
 			CodebreakerActivePhase.spawn(this.world, this.map, player);
 		}
 		return ActionResult.FAIL;
+	}
+
+	private void onPlayerRemove(ServerPlayerEntity player) {
+		this.players.remove(player);
+		if (!this.players.isEmpty()) {
+			this.switchPlayer();
+		}
 	}
 
 	public GameSpace getGameSpace() {
