@@ -112,10 +112,10 @@ public class CodebreakerActivePhase {
 		int currentIndex = this.players.indexOf(this.currentPlayer);
 
 		ServerPlayerEntity previousPlayer = this.currentPlayer;
-		this.currentPlayer = this.players.get(currentIndex % this.players.size());
+		this.currentPlayer = this.players.get((currentIndex + 1) % this.players.size());
 
 		if (previousPlayer != this.currentPlayer) {
-			this.gameSpace.getPlayers().sendMessage(new TranslatableText("text.codebreaker.next_turn", this.currentPlayer).formatted(Formatting.GOLD));
+			this.gameSpace.getPlayers().sendMessage(new TranslatableText("text.codebreaker.next_turn", this.currentPlayer.getDisplayName()).formatted(Formatting.GOLD));
 		}
 	}
 
