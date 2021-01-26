@@ -23,9 +23,11 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+import xyz.nucleoid.plasmid.entity.FloatingText;
 import xyz.nucleoid.plasmid.game.GameLogic;
 import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.event.GameOpenListener;
+import xyz.nucleoid.plasmid.game.event.GameTickListener;
 import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
 import xyz.nucleoid.plasmid.game.event.PlayerDamageListener;
 import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
@@ -39,17 +41,20 @@ public class CodebreakerActivePhase {
 	private final ServerWorld world;
 	private final CodebreakerMap map;
 	private final CodebreakerConfig config;
+	private final FloatingText guideText;
 	private final List<ServerPlayerEntity> players;
 	private final Code correctCode;
 	private Code queuedCode;
 	private int queuedIndex = 0;
 	private ServerPlayerEntity currentPlayer;
+	private int ticks = 0;
 
-	public CodebreakerActivePhase(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config, List<ServerPlayerEntity> players) {
+	public CodebreakerActivePhase(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config, FloatingText guideText, List<ServerPlayerEntity> players) {
 		this.gameSpace = gameSpace;
 		this.world = gameSpace.getWorld();
 		this.map = map;
 		this.config = config;
+		this.guideText = guideText;
 		this.players = players;
 		this.correctCode = Code.createRandom(config.getSpaces(), gameSpace.getWorld().getRandom());
 	}
@@ -63,14 +68,15 @@ public class CodebreakerActivePhase {
 		game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
 	}
 
-	public static void open(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config) {
-		CodebreakerActivePhase phase = new CodebreakerActivePhase(gameSpace, map, config, Lists.newArrayList(gameSpace.getPlayers()));
+	public static void open(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config, FloatingText guide) {
+		CodebreakerActivePhase phase = new CodebreakerActivePhase(gameSpace, map, config, guide, Lists.newArrayList(gameSpace.getPlayers()));
 
 		gameSpace.openGame(game -> {
 			CodebreakerActivePhase.setRules(game);
 
 			// Listeners
 			game.on(GameOpenListener.EVENT, phase::open);
+			game.on(GameTickListener.EVENT, phase::tick);
 			game.on(PlayerAddListener.EVENT, phase::addPlayer);
 			game.on(PlayerDamageListener.EVENT, phase::onPlayerDamage);
 			game.on(PlayerDeathListener.EVENT, phase::onPlayerDeath);
@@ -87,6 +93,13 @@ public class CodebreakerActivePhase {
 			if (this.currentPlayer == null) {
 				this.currentPlayer = player;
 			}
+		}
+	}
+
+	private void tick() {
+		this.ticks += 1;
+		if (this.guideText != null && ticks == this.config.getGuideTicks()) {
+			this.guideText.remove();
 		}
 	}
 
