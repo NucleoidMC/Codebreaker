@@ -73,16 +73,21 @@ public class Code {
 		return string + "}";
 	}
 
+	/**
+	 * Creates a code consisting of random pegs.
+	 * @param spaces the number of spaces in the code
+	 */
 	public static Code createRandom(int spaces, Random random) {
 		Code code = new Code(spaces);
 
 		List<Block> pegs = new ArrayList<>(Main.CODE_PEGS.values());
-		for (int index = 0; index < code.getPegs().length; index++) {
+		for (int index = 0; index < spaces; index++) {
+			// Refill peg choices if empty
 			if (pegs.size() == 0) {
 				pegs = new ArrayList<>(Main.CODE_PEGS.values());
 			}
 
-			int pegIndex = random.nextInt(pegs.size() - 1);
+			int pegIndex = random.nextInt(pegs.size());
 			code.setPeg(index, pegs.get(pegIndex).getDefaultState());
 			pegs.remove(pegIndex);
 		}
