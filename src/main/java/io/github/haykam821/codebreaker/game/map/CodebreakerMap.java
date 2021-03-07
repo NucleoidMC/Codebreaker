@@ -1,6 +1,7 @@
 package io.github.haykam821.codebreaker.game.map;
 
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import xyz.nucleoid.plasmid.map.template.MapTemplate;
@@ -24,6 +25,10 @@ public final class CodebreakerMap {
 
 	public BlockBounds getBounds() {
 		return this.bounds;
+	}
+
+	public boolean isBelowPlatform(ServerPlayerEntity player) {
+		return player.getY() < this.bounds.getMin().getY();
 	}
 
 	public ChunkGenerator createGenerator(MinecraftServer server) {

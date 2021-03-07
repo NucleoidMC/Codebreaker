@@ -102,6 +102,12 @@ public class CodebreakerActivePhase {
 		if (this.guideText != null && ticks == this.config.getGuideTicks()) {
 			this.guideText.remove();
 		}
+
+		for (ServerPlayerEntity player : this.players) {
+			if (this.map.isBelowPlatform(player)) {
+				CodebreakerActivePhase.spawn(this.world, this.map, player);
+			}
+		}
 	}
 
 	private void endGame() {

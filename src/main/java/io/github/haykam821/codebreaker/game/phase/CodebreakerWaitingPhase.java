@@ -22,6 +22,7 @@ import xyz.nucleoid.plasmid.game.GameWaitingLobby;
 import xyz.nucleoid.plasmid.game.StartResult;
 import xyz.nucleoid.plasmid.game.config.PlayerConfig;
 import xyz.nucleoid.plasmid.game.event.GameOpenListener;
+import xyz.nucleoid.plasmid.game.event.GameTickListener;
 import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
 import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
 import xyz.nucleoid.plasmid.game.event.RequestStartListener;
@@ -64,6 +65,7 @@ public class CodebreakerWaitingPhase {
 			CodebreakerActivePhase.setRules(game);
 
 			// Listeners
+			game.on(GameTickListener.EVENT, waiting::tick);
 			game.on(GameOpenListener.EVENT, waiting::open);
 			game.on(PlayerAddListener.EVENT, waiting::addPlayer);
 			game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
@@ -97,6 +99,14 @@ public class CodebreakerWaitingPhase {
 	public ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
 		CodebreakerActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
 		return ActionResult.SUCCESS;
+	}
+
+	public void tick() {
+		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
+			if (this.map.isBelowPlatform(player)) {
+				CodebreakerActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
+			}
+		}
 	}
 
 	private void open() {
