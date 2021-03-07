@@ -24,6 +24,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.plasmid.entity.FloatingText;
+import xyz.nucleoid.plasmid.game.GameCloseReason;
 import xyz.nucleoid.plasmid.game.GameLogic;
 import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.event.GameOpenListener;
@@ -104,7 +105,7 @@ public class CodebreakerActivePhase {
 	}
 
 	private void endGame() {
-		this.gameSpace.close();
+		this.gameSpace.close(GameCloseReason.FINISHED);
 	}
 
 	private void endGameWithWinner(ServerPlayerEntity player) {

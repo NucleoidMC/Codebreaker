@@ -16,8 +16,8 @@ repositories {
 		url = "https://maven.fabricmc.net/"
 	}
 	maven {
-		name = "Gegy"
-		url = "https://maven.gegy.dev/"
+		name = "Nucleoid"
+		url = "https://maven.nucleoid.xyz/"
 	}
 	jcenter()
 }
