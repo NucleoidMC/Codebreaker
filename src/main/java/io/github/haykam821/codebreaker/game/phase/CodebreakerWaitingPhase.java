@@ -70,7 +70,6 @@ public class CodebreakerWaitingPhase {
 			game.on(PlayerAddListener.EVENT, waiting::addPlayer);
 			game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
 			game.on(RequestStartListener.EVENT, waiting::requestStart);
-			game.on(RequestStartListener.EVENT, waiting::requestStart);
 		});
 	}
 
