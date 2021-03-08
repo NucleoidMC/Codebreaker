@@ -216,8 +216,7 @@ public class CodebreakerActivePhase {
 	}
 
 	private void onPlayerRemove(ServerPlayerEntity player) {
-		this.players.remove(player);
-		if (!this.players.isEmpty()) {
+		if (this.players.remove(player) && !this.players.isEmpty()) {
 			this.switchPlayer();
 		}
 	}
