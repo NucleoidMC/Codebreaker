@@ -13,7 +13,7 @@
 	},
 	"entrypoints": {
 		"main": [
-			"io.github.haykam821.codebreaker.Main"
+			"io.github.haykam821.codebreaker.Codebreaker"
 		]
 	},
 	"license": "MIT",

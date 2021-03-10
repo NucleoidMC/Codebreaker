@@ -1,6 +1,14 @@
 {
 	"type": "codebreaker:codebreaker",
-	"name": "Codebreaker",
+	"translation": "game.codebreaker.standard",
+	"board_block": {
+		"Name": "minecraft:white_concrete"
+	},
+	"map": {
+		"floor_block": {
+			"Name": "minecraft:gray_concrete"
+		}
+	},
 	"chances": 8,
 	"spaces": 4,
 	"players": {

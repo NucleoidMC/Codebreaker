@@ -16,7 +16,7 @@ public enum CodeResult {
 
 	private final BlockState state;
 
-	private CodeResult(BlockState state) {
+	CodeResult(BlockState state) {
 		this.state = state;
 	}
 
