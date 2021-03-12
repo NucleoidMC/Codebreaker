@@ -42,18 +42,18 @@ public class CodebreakerMapBuilder {
 			template.setBlockState(pos, mapConfig.getFloorProvider().getBlockState(random, pos));
 		}
 
-		// Pegs
-		int pegs = Main.CODE_PEGS.values().size();
-		BlockPos pegOrigin = ORIGIN.add(1, 0, 6);
-		BlockBounds pegBounds = new BlockBounds(pegOrigin, pegOrigin.add(pegs, 0, 0));
-		int pegIndex = 0;
-		for (BlockPos pos : pegBounds) {
-			if (pegIndex < pegs) {
-				template.setBlockState(pos, Main.CODE_PEGS.values().get(pegIndex).getDefaultState());
+		// Code controls
+		int codeControls = Main.CODE_PEGS.values().size();
+		BlockPos codeControlOrigin = ORIGIN.add(floorBounds.getSize().getX() / 2 - codeControls / 2, 0, 6);
+		BlockBounds codeControlBounds = new BlockBounds(codeControlOrigin, codeControlOrigin.add(codeControls, 0, 0));
+		int codeControlIndex = 0;
+		for (BlockPos pos : codeControlBounds) {
+			if (codeControlIndex < codeControls) {
+				template.setBlockState(pos, Main.CODE_PEGS.values().get(codeControlIndex).getDefaultState());
 			} else {
 				template.setBlockState(pos, Blocks.BEDROCK.getDefaultState());
 			}
-			pegIndex += 1;
+			codeControlIndex += 1;
 		}
 
 		return new CodebreakerMap(template, codeOrigin, floorBounds);
