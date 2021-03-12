@@ -9,6 +9,7 @@ import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import io.github.haykam821.codebreaker.game.code.ComparedCode;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMap;
+import io.github.haykam821.codebreaker.game.turn.TurnManager;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.damage.DamageSource;
@@ -47,7 +48,7 @@ public class CodebreakerActivePhase {
 	private final Code correctCode;
 	private Code queuedCode;
 	private int queuedIndex = 0;
-	private ServerPlayerEntity currentPlayer;
+	private TurnManager turnManager;
 	private int ticks = 0;
 
 	public CodebreakerActivePhase(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config, FloatingText guideText, List<ServerPlayerEntity> players) {
@@ -91,8 +92,8 @@ public class CodebreakerActivePhase {
 			player.setGameMode(GameMode.ADVENTURE);
 			CodebreakerActivePhase.spawn(this.world, this.map, player);
 
-			if (this.currentPlayer == null) {
-				this.currentPlayer = player;
+			if (this.turnManager == null) {
+				this.turnManager = config.createTurnManager(this, player);
 			}
 		}
 	}
@@ -128,17 +129,6 @@ public class CodebreakerActivePhase {
 		CodebreakerActivePhase.spawn(this.world, this.map, player);
 	}
 
-	private void switchPlayer() {
-		int currentIndex = this.players.indexOf(this.currentPlayer);
-
-		ServerPlayerEntity previousPlayer = this.currentPlayer;
-		this.currentPlayer = this.players.get((currentIndex + 1) % this.players.size());
-
-		if (previousPlayer != this.currentPlayer) {
-			this.gameSpace.getPlayers().sendMessage(new TranslatableText("text.codebreaker.next_turn", this.currentPlayer.getDisplayName()).formatted(Formatting.GOLD));
-		}
-	}
-
 	private void submitCode(ServerPlayerEntity player) {
 		ComparedCode comparedCode = new ComparedCode(this.queuedCode.getPegs(), this.correctCode);
 		comparedCode.build(this.world, this.map.getCodeOrigin().add(this.queuedIndex, 0, 0));
@@ -152,7 +142,7 @@ public class CodebreakerActivePhase {
 
 			this.endGame();
 		} else {
-			this.switchPlayer();
+			this.turnManager.switchTurn();
 			this.gameSpace.getPlayers().sendSound(SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1, 1);
 		}
 
@@ -184,8 +174,8 @@ public class CodebreakerActivePhase {
 		BlockState state = player.getEntityWorld().getBlockState(hitResult.getBlockPos());
 		if (!state.isIn(Main.CODE_PEGS) && !state.isOf(Blocks.BEDROCK)) return ActionResult.FAIL;
 
-		if (player != this.currentPlayer) {
-			player.sendMessage(new TranslatableText("text.codebreaker.other_turn", this.currentPlayer.getDisplayName()).formatted(Formatting.RED), false);
+		if (!this.turnManager.isTurn(player)) {
+			player.sendMessage(this.turnManager.getOtherTurnMessage(), false);
 			return ActionResult.FAIL;
 		}
 	
@@ -217,7 +207,7 @@ public class CodebreakerActivePhase {
 
 	private void onPlayerRemove(ServerPlayerEntity player) {
 		if (this.players.remove(player) && !this.players.isEmpty()) {
-			this.switchPlayer();
+			this.turnManager.switchTurn();
 		}
 	}
 
@@ -227,6 +217,10 @@ public class CodebreakerActivePhase {
 
 	public CodebreakerConfig getConfig() {
 		return this.config;
+	}
+
+	public List<ServerPlayerEntity> getPlayers() {
+		return this.players;
 	}
 
 	public static void spawn(ServerWorld world, CodebreakerMap map, ServerPlayerEntity player) {
