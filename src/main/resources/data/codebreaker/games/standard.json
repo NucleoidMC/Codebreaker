@@ -2,11 +2,17 @@
 	"type": "codebreaker:codebreaker",
 	"translation": "game.codebreaker.standard",
 	"board_block": {
-		"Name": "minecraft:white_concrete"
+		"type": "minecraft:simple_state_provider",
+		"state": {
+			"Name": "minecraft:white_concrete"
+		}
 	},
 	"map": {
 		"floor_block": {
-			"Name": "minecraft:gray_concrete"
+			"type": "minecraft:simple_state_provider",
+			"state": {
+				"Name": "minecraft:gray_concrete"
+			}
 		}
 	},
 	"chances": 8,

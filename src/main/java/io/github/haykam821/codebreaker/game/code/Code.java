@@ -1,20 +1,12 @@
 package io.github.haykam821.codebreaker.game.code;
 
+import io.github.haykam821.codebreaker.Codebreaker;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import io.github.haykam821.codebreaker.Codebreaker;
-import io.github.haykam821.codebreaker.game.CbConfig;
-import io.github.haykam821.codebreaker.game.map.CbBoard;
-import io.github.haykam821.codebreaker.game.map.CbMapBuilder;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.WorldAccess;
-import xyz.nucleoid.plasmid.util.BlockBounds;
 
 public class Code {
 	private final BlockState[] pegs;

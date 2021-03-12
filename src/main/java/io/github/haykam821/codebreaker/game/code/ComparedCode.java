@@ -1,16 +1,10 @@
 package io.github.haykam821.codebreaker.game.code;
 
+import com.google.common.collect.Lists;
+import net.minecraft.block.BlockState;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import com.google.common.collect.Lists;
-
-import io.github.haykam821.codebreaker.game.CbConfig;
-import io.github.haykam821.codebreaker.game.map.CbBoard;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.WorldAccess;
 
 public class ComparedCode extends Code {
 	private final List<CodeResult> results = new ArrayList<>();
