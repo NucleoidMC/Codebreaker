@@ -19,7 +19,30 @@ public abstract class TurnManager {
 		return player == this.getTurn();
 	}
 
-	public abstract void switchTurn();
+	public final void switchTurnAndAnnounce() {
+		if (this.switchTurn()) {
+			this.announceNextTurn();
+		}
+	}
+
+	public final void announceNextTurn() {
+		Text nextTurnMessage = this.getNextTurnMessage();
+		if (nextTurnMessage != null) {
+			this.phase.getGameSpace().getPlayers().sendMessage(nextTurnMessage);
+		}
+	}
+
+	/**
+	 * @return whether the new turn is different from the old turn
+	 */
+	public abstract boolean switchTurn();
+
+	public final Text getNextTurnMessage() {
+		ServerPlayerEntity turn = this.getTurn();
+		if (turn == null) return null;
+
+		return new TranslatableText("text.codebreaker.next_turn", turn.getDisplayName()).formatted(Formatting.GOLD);
+	}
 
 	public final Text getOtherTurnMessage() {
 		ServerPlayerEntity turn = this.getTurn();

@@ -19,7 +19,7 @@ public class NoTurnManager extends TurnManager {
 	}
 
 	@Override
-	public void switchTurn() {
-		return;
+	public boolean switchTurn() {
+		return false;
 	}
 }
