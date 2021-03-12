@@ -1,10 +1,10 @@
 package io.github.haykam821.codebreaker.game.turn;
 
-import io.github.haykam821.codebreaker.game.phase.CodebreakerActivePhase;
+import io.github.haykam821.codebreaker.game.phase.CbActivePhase;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 public class NoTurnManager extends TurnManager {
-	public NoTurnManager(CodebreakerActivePhase phase) {
+	public NoTurnManager(CbActivePhase phase) {
 		super(phase);
 	}
 
