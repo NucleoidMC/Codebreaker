@@ -29,7 +29,7 @@ public class CbBoard {
 	public void build(WorldAccess world, CbConfig config, Code code, int index) {
 		BlockPos.Mutable pos = new BlockPos(getTopLeftPos()).mutableCopy().move(getFacingDirection().rotateYCounterclockwise(), index);
 		for(BlockState state : code.getPegs()) {
-			world.setBlockState(pos, state == null ? config.getBoardBlock() : state, 3);
+			world.setBlockState(pos, state == null ? config.getBoardProvider().getBlockState(world.getRandom(), pos) : state, 3);
 			pos.move(Direction.DOWN);
 		}
 	}
