@@ -5,6 +5,8 @@ import io.github.haykam821.codebreaker.Codebreaker;
 import io.github.haykam821.codebreaker.game.CbConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import io.github.haykam821.codebreaker.game.code.ComparedCode;
+import io.github.haykam821.codebreaker.game.map.CbBoard;
+import io.github.haykam821.codebreaker.game.map.CbControlPad;
 import io.github.haykam821.codebreaker.game.map.CbMap;
 import io.github.haykam821.codebreaker.game.turn.TurnManager;
 import net.minecraft.block.BlockState;
@@ -20,7 +22,6 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import xyz.nucleoid.plasmid.entity.FloatingText;
@@ -82,26 +83,32 @@ public class CbActivePhase {
 		});
 	}
 
+	public static void spawn(ServerWorld world, CbMap map, ServerPlayerEntity player) {
+		BlockPos spawnPos = map.getSpawnPos();
+		player.teleport(world, spawnPos.getX(), spawnPos.getY() + 1, spawnPos.getZ(), 180, 0);
+	}
+
 	private void open() {
-		for (ServerPlayerEntity player : this.players) {
+		for(ServerPlayerEntity player : this.players) {
 			player.setGameMode(GameMode.ADVENTURE);
 			CbActivePhase.spawn(this.world, this.map, player);
 
-			if (this.turnManager == null) {
+			if(this.turnManager == null) {
 				this.turnManager = config.createTurnManager(this, player);
 				this.turnManager.announceNextTurn();
 			}
 		}
+		this.refreshControlPads();
 	}
 
 	private void tick() {
 		this.ticks += 1;
-		if (this.guideText != null && ticks == this.config.getGuideTicks()) {
+		if(this.guideText != null && ticks == this.config.getGuideTicks()) {
 			this.guideText.remove();
 		}
 
-		for (ServerPlayerEntity player : this.players) {
-			if (this.map.isBelowPlatform(player)) {
+		for(ServerPlayerEntity player : this.players) {
+			if(this.map.isBelowZero(player)) {
 				CbActivePhase.spawn(this.world, this.map, player);
 			}
 		}
@@ -125,19 +132,38 @@ public class CbActivePhase {
 		CbActivePhase.spawn(this.world, this.map, player);
 	}
 
+	private void refreshBoards() {
+		for(CbBoard board : this.map.getBoards()) {
+			board.build(this.world, this.config, this.queuedCode, this.queuedIndex);
+		}
+	}
+
+	private void refreshControlPads() {
+		for(CbControlPad controlPad : this.map.getControlPads()) {
+			boolean filled = false;
+			if(this.queuedCode != null) filled = this.queuedCode.isCompletelyFilled();
+			controlPad.build(this.world, filled);
+		}
+	}
+
 	private void submitCode(ServerPlayerEntity player) {
 		ComparedCode comparedCode = new ComparedCode(this.queuedCode.getPegs(), this.correctCode);
-		comparedCode.build(this.config, this.world, this.map.getCodeOrigin().add(this.queuedIndex, 0, 0));
+		for(CbBoard board : this.map.getBoards()) {
+			// Builds the buttons result in all boards
+			board.buildResult(this.world, this.config, comparedCode, this.queuedIndex);
+		}
 
-		if (comparedCode.isCorrect()) {
+		if(comparedCode.isCorrect()) {
 			this.endGameWithWinner(player);
 			this.gameSpace.getPlayers().sendSound(SoundEvents.ENTITY_FIREWORK_ROCKET_SHOOT, SoundCategory.BLOCKS, 1, 1);
-		} else if (this.queuedIndex + 1 >= this.config.getChances()) {
+		}
+		else if(this.queuedIndex + 1 >= this.config.getChances()) {
 			this.gameSpace.getPlayers().sendMessage(new TranslatableText("text.codebreaker.lose", this.queuedIndex + 1).formatted(Formatting.RED));
 			this.gameSpace.getPlayers().sendSound(SoundEvents.ENTITY_CREEPER_DEATH, SoundCategory.BLOCKS, 1, 1);
 
 			this.endGame();
-		} else {
+		}
+		else {
 			this.turnManager.switchTurnAndAnnounce();
 			this.gameSpace.getPlayers().sendSound(SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1, 1);
 		}
@@ -152,46 +178,46 @@ public class CbActivePhase {
 
 	private void eraseQueuedCode(World world, BlockPos pos) {
 		this.createQueuedCode();
-		this.queuedCode.build(this.config, this.world, this.map.getCodeOrigin().add(this.queuedIndex, 0, 0));
+		this.refreshBoards();
 		world.playSound(null, pos, SoundEvents.BLOCK_NOTE_BLOCK_BIT, SoundCategory.BLOCKS, 1, 0.5f);
 	}
 
 	private void queueCodePeg(World world, BlockPos pos, BlockState state) {
-		if (this.queuedCode == null) {
+		if(this.queuedCode == null) {
 			this.createQueuedCode();
 		}
 		this.queuedCode.setNext(state);
-		this.queuedCode.build(this.config, this.world, this.map.getCodeOrigin().add(this.queuedIndex, 0, 0));
+		this.refreshBoards();
 		world.playSound(null, pos, SoundEvents.BLOCK_NOTE_BLOCK_BIT, SoundCategory.BLOCKS, 1, 2);
 	}
 
 	private ActionResult onUseBlock(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
-		if (hand != Hand.MAIN_HAND || !this.players.contains(player)) return ActionResult.FAIL;
+		if(hand != Hand.MAIN_HAND || !this.players.contains(player)) return ActionResult.FAIL;
 
 		BlockState state = player.getEntityWorld().getBlockState(hitResult.getBlockPos());
 		World world = player.getEntityWorld();
 
-		if (!this.turnManager.isTurn(player)) {
-			player.sendMessage(this.turnManager.getOtherTurnMessage(), false);
-			return ActionResult.FAIL;
-		}
-		else {
-			if(this.map.getPegBounds().contains(hitResult.getBlockPos())) {
-				if (state.isOf(Blocks.BEDROCK)) {
+		for(CbControlPad controlPad : this.map.getControlPads()) {
+			if(controlPad.getBounds().contains(hitResult.getBlockPos())) {
+				if(!this.turnManager.isTurn(player)) {
+					player.sendMessage(this.turnManager.getOtherTurnMessage(), false);
+					return ActionResult.FAIL;
+				}
+				if(state.isOf(Blocks.BEDROCK)) {
 					this.eraseQueuedCode(world, hitResult.getBlockPos());
 				}
-				else if (state.isOf(Blocks.SEA_LANTERN)) {
+				else if(state.isOf(Blocks.SEA_LANTERN)) {
 					this.submitCode(player);
 					this.createQueuedCode();
 				}
-				else if (state.isIn(Codebreaker.CODE_PEGS)) {
+				else if(state.isIn(Codebreaker.CODE_PEGS)) {
 					this.queueCodePeg(world, hitResult.getBlockPos(), state);
 				}
-				this.queuedCode.buildControl(this.config, this.world, this.map.getPegBounds());
+				this.refreshControlPads();
 				return ActionResult.SUCCESS;
 			}
 		}
-		
+
 		return ActionResult.FAIL;
 	}
 
@@ -200,14 +226,14 @@ public class CbActivePhase {
 	}
 
 	private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
-		if (this.players.contains(player)) {
+		if(this.players.contains(player)) {
 			CbActivePhase.spawn(this.world, this.map, player);
 		}
 		return ActionResult.FAIL;
 	}
 
 	private void onPlayerRemove(ServerPlayerEntity player) {
-		if (this.players.remove(player) && !this.players.isEmpty()) {
+		if(this.players.remove(player) && !this.players.isEmpty()) {
 			this.turnManager.switchTurnAndAnnounce();
 		}
 	}
@@ -222,10 +248,5 @@ public class CbActivePhase {
 
 	public List<ServerPlayerEntity> getPlayers() {
 		return this.players;
-	}
-
-	public static void spawn(ServerWorld world, CbMap map, ServerPlayerEntity player) {
-		Vec3d center = map.getFloorBounds().getCenter();
-		player.teleport(world, center.getX(), 65, center.getZ(), 180, 0);
 	}
 }

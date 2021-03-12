@@ -99,7 +99,7 @@ public class CbWaitingPhase {
 
 	public void tick() {
 		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
-			if (this.map.isBelowPlatform(player)) {
+			if (this.map.isBelowZero(player)) {
 				CbActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
 			}
 		}
@@ -107,7 +107,7 @@ public class CbWaitingPhase {
 
 	private void open() {
 		// Spawn guide text
-		Vec3d center = new Vec3d(this.map.getFloorBounds().getCenter().getX(), this.map.getFloorBounds().getMin().getY() + 2.8, this.map.getFloorBounds().getMax().getZ());
+		Vec3d center = new Vec3d(this.map.getSpawnPos().getX(), this.map.getSpawnPos().getY() + 2.8, this.map.getSpawnPos().getZ() + 9);
 		this.gameSpace.getWorld().getChunk(new BlockPos(center));
 
 		this.guideText = FloatingText.spawn(this.gameSpace.getWorld(), center, GUIDE_LINES, VerticalAlign.CENTER);

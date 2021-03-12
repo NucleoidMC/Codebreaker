@@ -6,6 +6,7 @@ import java.util.List;
 import com.google.common.collect.Lists;
 
 import io.github.haykam821.codebreaker.game.CbConfig;
+import io.github.haykam821.codebreaker.game.map.CbBoard;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -41,20 +42,7 @@ public class ComparedCode extends Code {
 		return true;
 	}
 
-	@Override
-	public void build(CbConfig config, WorldAccess world, BlockPos originPos) {
-		super.build(config, world, originPos);
-		
-		BlockPos.Mutable pos = originPos.mutableCopy().move(0, -this.getPegs().length, 1);
-		for (int index = 0; index < this.getPegs().length; index++) {
-			if (index >= this.results.size()) {
-				world.setBlockState(pos, CodeResult.EMPTY, 3);
-			} else {
-				CodeResult result = this.results.get(index);
-				world.setBlockState(pos, result == null ? CodeResult.EMPTY : result.getState(), 3);
-			}
-
-			pos.move(Direction.DOWN);
-		}
+	public List<CodeResult> getResults() {
+		return results;
 	}
 }

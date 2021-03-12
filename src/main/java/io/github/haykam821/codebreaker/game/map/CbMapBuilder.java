@@ -6,6 +6,7 @@ import io.github.haykam821.codebreaker.game.map.generic.CbGenericMapConfig;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import xyz.nucleoid.plasmid.map.template.MapTemplate;
 import xyz.nucleoid.plasmid.map.template.MapTemplateSerializer;
 import xyz.nucleoid.plasmid.util.BlockBounds;
@@ -59,22 +60,13 @@ public class CbMapBuilder {
 			template.setBlockState(pos, mapConfig.getFloorBlock());
 		}
 
-		// Pegs
-		int pegs = Codebreaker.CODE_PEGS.values().size();
-		BlockPos pegOrigin = ORIGIN.add(2 + floorBounds.getCenter().getX() - pegs, 0, 6);
-		BlockBounds pegBounds = new BlockBounds(pegOrigin, pegOrigin.add(pegs, 0, 0));
+		// Control Pad
+		BlockPos controlPadOrigin = ORIGIN.add(2 + floorBounds.getCenter().getX() - Codebreaker.CODE_PEGS.values().size(), 0, 6);
 
-		CbMap map = new CbMap(template, codeOrigin, floorBounds, pegBounds);
+		CbMap map = new CbMap(template, new BlockPos(floorBounds.getCenter()));
 
-		int pegIndex = 0;
-		for (BlockPos pos : pegBounds) {
-			if (pegIndex < pegs) {
-				template.setBlockState(pos, Codebreaker.CODE_PEGS.values().get(pegIndex).getDefaultState());
-			} else {
-				template.setBlockState(pos, Blocks.BEDROCK.getDefaultState());
-			}
-			pegIndex += 1;
-		}
+		map.addControlPad(new CbControlPad(controlPadOrigin, Direction.EAST, Codebreaker.CODE_PEGS.values()));
+		map.addBoard(new CbBoard(codeOrigin, Direction.SOUTH));
 
 		return map;
 	}

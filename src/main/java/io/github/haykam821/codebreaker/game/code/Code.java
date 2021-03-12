@@ -6,6 +6,7 @@ import java.util.Random;
 
 import io.github.haykam821.codebreaker.Codebreaker;
 import io.github.haykam821.codebreaker.game.CbConfig;
+import io.github.haykam821.codebreaker.game.map.CbBoard;
 import io.github.haykam821.codebreaker.game.map.CbMapBuilder;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -52,28 +53,6 @@ public class Code {
 		return true;
 	}
 
-	public void build(CbConfig config, WorldAccess world, BlockPos originPos) {
-		BlockPos.Mutable pos = originPos.mutableCopy();
-		for(BlockState state : this.pegs) {
-			world.setBlockState(pos, state == null ? config.getBoardBlock() : state, 3);
-
-			pos.move(Direction.DOWN);
-		}
-	}
-
-	public void buildControl(CbConfig config, WorldAccess world, BlockBounds pegBounds) {
-		int pegs = Codebreaker.CODE_PEGS.values().size();
-		int pegIndex = 0;
-		for (BlockPos pos : pegBounds) {
-			if (pegIndex < pegs) {
-				world.setBlockState(pos, (isCompletelyFilled() ? Blocks.SEA_LANTERN : Codebreaker.CODE_PEGS.values().get(pegIndex)).getDefaultState(), 3);
-			} else {
-				world.setBlockState(pos, Blocks.BEDROCK.getDefaultState(), 3);
-			}
-			pegIndex += 1;
-		}
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder string = new StringBuilder("Code{pegs=");
@@ -104,6 +83,7 @@ public class Code {
 
 			int pegIndex = random.nextInt(pegs.size());
 			code.setPeg(index, pegs.get(pegIndex).getDefaultState());
+			// TODO: Harder mode that should just remove this line right under
 			pegs.remove(pegIndex);
 		}
 
