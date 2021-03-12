@@ -1,14 +1,12 @@
 package io.github.haykam821.codebreaker.game.phase;
 
-import java.util.List;
-
 import com.google.common.collect.Lists;
-
 import io.github.haykam821.codebreaker.Codebreaker;
 import io.github.haykam821.codebreaker.game.CbConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import io.github.haykam821.codebreaker.game.code.ComparedCode;
 import io.github.haykam821.codebreaker.game.map.CbMap;
+import io.github.haykam821.codebreaker.game.turn.TurnManager;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.damage.DamageSource;
@@ -29,15 +27,11 @@ import xyz.nucleoid.plasmid.entity.FloatingText;
 import xyz.nucleoid.plasmid.game.GameCloseReason;
 import xyz.nucleoid.plasmid.game.GameLogic;
 import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.event.GameOpenListener;
-import xyz.nucleoid.plasmid.game.event.GameTickListener;
-import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
-import xyz.nucleoid.plasmid.game.event.PlayerDamageListener;
-import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
-import xyz.nucleoid.plasmid.game.event.PlayerRemoveListener;
-import xyz.nucleoid.plasmid.game.event.UseBlockListener;
+import xyz.nucleoid.plasmid.game.event.*;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
+
+import java.util.List;
 
 public class CbActivePhase {
 	private final GameSpace gameSpace;
@@ -49,7 +43,7 @@ public class CbActivePhase {
 	private final Code correctCode;
 	private Code queuedCode;
 	private int queuedIndex = 0;
-	private ServerPlayerEntity currentPlayer;
+	private TurnManager turnManager;
 	private int ticks = 0;
 
 	public CbActivePhase(GameSpace gameSpace, CbMap map, CbConfig config, FloatingText guideText, List<ServerPlayerEntity> players) {
@@ -93,8 +87,9 @@ public class CbActivePhase {
 			player.setGameMode(GameMode.ADVENTURE);
 			CbActivePhase.spawn(this.world, this.map, player);
 
-			if (this.currentPlayer == null) {
-				this.currentPlayer = player;
+			if (this.turnManager == null) {
+				this.turnManager = config.createTurnManager(this, player);
+				this.turnManager.announceNextTurn();
 			}
 		}
 	}
@@ -130,17 +125,6 @@ public class CbActivePhase {
 		CbActivePhase.spawn(this.world, this.map, player);
 	}
 
-	private void switchPlayer() {
-		int currentIndex = this.players.indexOf(this.currentPlayer);
-
-		ServerPlayerEntity previousPlayer = this.currentPlayer;
-		this.currentPlayer = this.players.get((currentIndex + 1) % this.players.size());
-
-		if (previousPlayer != this.currentPlayer) {
-			this.gameSpace.getPlayers().sendMessage(new TranslatableText("text.codebreaker.next_turn", this.currentPlayer.getDisplayName()).formatted(Formatting.GOLD));
-		}
-	}
-
 	private void submitCode(ServerPlayerEntity player) {
 		ComparedCode comparedCode = new ComparedCode(this.queuedCode.getPegs(), this.correctCode);
 		comparedCode.build(this.config, this.world, this.map.getCodeOrigin().add(this.queuedIndex, 0, 0));
@@ -154,7 +138,7 @@ public class CbActivePhase {
 
 			this.endGame();
 		} else {
-			this.switchPlayer();
+			this.turnManager.switchTurnAndAnnounce();
 			this.gameSpace.getPlayers().sendSound(SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1, 1);
 		}
 
@@ -187,9 +171,9 @@ public class CbActivePhase {
 		BlockState state = player.getEntityWorld().getBlockState(hitResult.getBlockPos());
 		World world = player.getEntityWorld();
 
-		if (player != this.currentPlayer) {
-			player.sendMessage(new TranslatableText("text.codebreaker.other_turn", this.currentPlayer.getDisplayName()).formatted(Formatting.RED), false);
-			return ActionResult.SUCCESS;
+		if (!this.turnManager.isTurn(player)) {
+			player.sendMessage(this.turnManager.getOtherTurnMessage(), false);
+			return ActionResult.FAIL;
 		}
 		else {
 			if(this.map.getPegBounds().contains(hitResult.getBlockPos())) {
@@ -224,7 +208,7 @@ public class CbActivePhase {
 
 	private void onPlayerRemove(ServerPlayerEntity player) {
 		if (this.players.remove(player) && !this.players.isEmpty()) {
-			this.switchPlayer();
+			this.turnManager.switchTurnAndAnnounce();
 		}
 	}
 
@@ -234,6 +218,10 @@ public class CbActivePhase {
 
 	public CbConfig getConfig() {
 		return this.config;
+	}
+
+	public List<ServerPlayerEntity> getPlayers() {
+		return this.players;
 	}
 
 	public static void spawn(ServerWorld world, CbMap map, ServerPlayerEntity player) {

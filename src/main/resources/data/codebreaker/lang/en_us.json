@@ -8,7 +8,8 @@
 	"text.codebreaker.guide.guessing_gives_results": "A failed guess will show hits, blows, and misses.",
 	"text.codebreaker.guide.stone_button_indicates_blow": "A stone button indicates a blow; one guessed color is present on the actual code.",
 	"text.codebreaker.lose": "Nobody won the game within %s rounds!",
-	"text.codebreaker.next_turn": "It is now %s's turn.",
 	"text.codebreaker.other_turn": "It is currently %s's turn.",
-	"text.codebreaker.win": "%s won the game after %s rounds."
+	"text.codebreaker.win": "%s won the game after %s rounds.",
+	"text.codebreaker.next_turn": "It is now %s's turn.",
+	"text.codebreaker.no_turn": "There is no player with the turn."
 }
