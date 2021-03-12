@@ -1,8 +1,9 @@
 package io.github.haykam821.codebreaker.game.map;
 
+import java.util.Random;
+
 import io.github.haykam821.codebreaker.Main;
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
 import xyz.nucleoid.plasmid.map.template.MapTemplate;
@@ -10,9 +11,7 @@ import xyz.nucleoid.plasmid.util.BlockBounds;
 
 public class CodebreakerMapBuilder {
 	private static final BlockPos ORIGIN = new BlockPos(0, 64, 0);
-	public static final BlockState BOARD_STATE = Blocks.WHITE_CONCRETE.getDefaultState();
 	private static final int FLOOR_WIDTH = 18;
-	private static final BlockState FLOOR_STATE = Blocks.GRAY_CONCRETE.getDefaultState();
 
 	private final CodebreakerConfig config;
 
@@ -23,11 +22,14 @@ public class CodebreakerMapBuilder {
 	public CodebreakerMap create() {
 		MapTemplate template = MapTemplate.createEmpty();
 
+		CodebreakerMapConfig mapConfig = this.config.getMapConfig();
+		Random random = new Random();
+
 		// Board
 		BlockPos boardOrigin = ORIGIN.add(1, 1, 1);
 		BlockBounds boardBounds = new BlockBounds(boardOrigin, boardOrigin.add(this.config.getChances() + 1, this.config.getSpaces() * 2, 0));
 		for (BlockPos pos : boardBounds) {
-			template.setBlockState(pos, BOARD_STATE);
+			template.setBlockState(pos, mapConfig.getBoardProvider().getBlockState(random, pos));
 		}
 
 		BlockPos codeOrigin = boardOrigin.add(1, this.config.getSpaces() * 2 - 1, 0);
@@ -37,7 +39,7 @@ public class CodebreakerMapBuilder {
 		BlockPos floorOrigin = ORIGIN.add(0, 0, 0);
 		BlockBounds floorBounds = new BlockBounds(floorOrigin, floorOrigin.add(this.config.getChances() + 3, 0, FLOOR_WIDTH - 1));
 		for (BlockPos pos : floorBounds) {
-			template.setBlockState(pos, FLOOR_STATE);
+			template.setBlockState(pos, mapConfig.getFloorProvider().getBlockState(random, pos));
 		}
 
 		// Pegs

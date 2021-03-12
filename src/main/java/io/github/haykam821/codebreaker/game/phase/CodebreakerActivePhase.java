@@ -132,7 +132,7 @@ public class CodebreakerActivePhase {
 
 	private void submitCode(ServerPlayerEntity player) {
 		ComparedCode comparedCode = new ComparedCode(this.queuedCode.getPegs(), this.correctCode);
-		comparedCode.build(this.world, this.map.getCodeOrigin().add(this.queuedIndex, 0, 0));
+		comparedCode.build(this.world, this.map.getCodeOrigin().add(this.queuedIndex, 0, 0), this.config.getMapConfig());
 
 		if (comparedCode.isCorrect()) {
 			this.endGameWithWinner(player);
@@ -189,7 +189,7 @@ public class CodebreakerActivePhase {
 		if (this.queuedCode.isCompletelyFilled()) {
 			this.submitCode(player);
 		} else {
-			this.queuedCode.build(this.world, this.map.getCodeOrigin().add(this.queuedIndex, 0, 0));
+			this.queuedCode.build(this.world, this.map.getCodeOrigin().add(this.queuedIndex, 0, 0), this.config.getMapConfig());
 		}
 		
 		return ActionResult.FAIL;

@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
+import io.github.haykam821.codebreaker.game.map.CodebreakerMapConfig;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -41,8 +42,8 @@ public class ComparedCode extends Code {
 	}
 
 	@Override
-	public void build(WorldAccess world, BlockPos originPos) {
-		super.build(world, originPos);
+	public void build(WorldAccess world, BlockPos originPos, CodebreakerMapConfig mapConfig) {
+		super.build(world, originPos, mapConfig);
 		
 		BlockPos.Mutable pos = originPos.mutableCopy().move(0, -this.getPegs().length, 1);
 		for (int index = 0; index < this.getPegs().length; index++) {

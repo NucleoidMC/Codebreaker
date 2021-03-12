@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Random;
 
 import io.github.haykam821.codebreaker.Main;
-import io.github.haykam821.codebreaker.game.map.CodebreakerMapBuilder;
+import io.github.haykam821.codebreaker.game.map.CodebreakerMapConfig;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
@@ -49,11 +49,11 @@ public class Code {
 		return true;
 	}
 
-	public void build(WorldAccess world, BlockPos originPos) {
+	public void build(WorldAccess world, BlockPos originPos, CodebreakerMapConfig mapConfig) {
 		BlockPos.Mutable pos = originPos.mutableCopy();
 		for (int index = 0; index < this.pegs.length; index++) {
 			BlockState state = this.pegs[index];
-			world.setBlockState(pos, state == null ? CodebreakerMapBuilder.BOARD_STATE : state, 3);
+			world.setBlockState(pos, state == null ? mapConfig.getBoardProvider().getBlockState(world.getRandom(), pos) : state, 3);
 
 			pos.move(Direction.DOWN);
 		}
