@@ -175,9 +175,18 @@ public class CodebreakerActivePhase {
 		BlockState state = player.getEntityWorld().getBlockState(hitResult.getBlockPos());
 		if (!state.isIn(Main.CODE_PEGS) && !state.isOf(Blocks.BEDROCK)) return ActionResult.FAIL;
 
+		if (this.useCodeControl(player, state)) {
+			// Swing hand and notify player
+			player.swingHand(hand, true);
+		}
+
+		return ActionResult.FAIL;
+	}
+
+	private boolean useCodeControl(ServerPlayerEntity player, BlockState state) {
 		if (!this.turnManager.isTurn(player)) {
 			player.sendMessage(this.turnManager.getOtherTurnMessage(), false);
-			return ActionResult.FAIL;
+			return false;
 		}
 	
 		if (state.isOf(Blocks.BEDROCK)) {
@@ -191,8 +200,8 @@ public class CodebreakerActivePhase {
 		} else {
 			this.queuedCode.build(this.world, this.map.getCodeOrigin().add(this.queuedIndex, 0, 0), this.config.getMapConfig());
 		}
-		
-		return ActionResult.FAIL;
+
+		return true;
 	}
 
 	private ActionResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
