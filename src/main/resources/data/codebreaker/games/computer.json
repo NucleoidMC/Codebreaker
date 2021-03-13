@@ -1,6 +1,6 @@
 {
 	"type": "codebreaker:codebreaker",
-	"translation": "game.codebreaker.standard.computer",
+	"translation": "game.codebreaker.computer",
 	"board_block": {
 		"type": "minecraft:simple_state_provider",
 		"state": {

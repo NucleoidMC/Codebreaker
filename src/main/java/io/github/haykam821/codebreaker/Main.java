@@ -11,17 +11,19 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import xyz.nucleoid.plasmid.game.GameType;
 
-public class Codebreaker implements ModInitializer {
+public class Main implements ModInitializer {
 	private static final String ID = "codebreaker";
 	public static final Logger LOGGER = LogManager.getLogger(ID);
 
-	private static final Identifier CODE_PEGS_ID = new Identifier(ID, "code_pegs");
-	public static final Tag<Block> CODE_PEGS = TagRegistry.block(CODE_PEGS_ID);
+	public static final Tag<Block> CODE_PEGS = TagRegistry.block(id("pegs/code_pegs"));
 
-	private static final Identifier CODEBREAKER_ID = new Identifier(ID, "codebreaker");
-	public static final GameType<CodebreakerConfig> CODEBREAKER_TYPE = GameType.register(CODEBREAKER_ID, CodebreakerWaitingPhase::open, CodebreakerConfig.CODEC);
+	public static final GameType<CodebreakerConfig> CODEBREAKER_TYPE = GameType.register(id("codebreaker"), CodebreakerWaitingPhase::open, CodebreakerConfig.CODEC);
 
 	@Override
 	public void onInitialize() {
+	}
+
+	public static Identifier id(String s) {
+		return new Identifier(ID, s);
 	}
 }

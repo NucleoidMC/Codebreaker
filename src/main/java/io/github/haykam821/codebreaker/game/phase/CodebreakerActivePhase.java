@@ -1,16 +1,14 @@
 package io.github.haykam821.codebreaker.game.phase;
 
 import com.google.common.collect.Lists;
-import io.github.haykam821.codebreaker.Codebreaker;
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import io.github.haykam821.codebreaker.game.code.ComparedCode;
 import io.github.haykam821.codebreaker.game.map.Board;
-import io.github.haykam821.codebreaker.game.map.ControlPad;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMap;
+import io.github.haykam821.codebreaker.game.map.ControlPad;
 import io.github.haykam821.codebreaker.game.turn.TurnManager;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -28,7 +26,13 @@ import xyz.nucleoid.plasmid.entity.FloatingText;
 import xyz.nucleoid.plasmid.game.GameCloseReason;
 import xyz.nucleoid.plasmid.game.GameLogic;
 import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.event.*;
+import xyz.nucleoid.plasmid.game.event.GameOpenListener;
+import xyz.nucleoid.plasmid.game.event.GameTickListener;
+import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
+import xyz.nucleoid.plasmid.game.event.PlayerDamageListener;
+import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
+import xyz.nucleoid.plasmid.game.event.PlayerRemoveListener;
+import xyz.nucleoid.plasmid.game.event.UseBlockListener;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
 
@@ -54,7 +58,7 @@ public class CodebreakerActivePhase {
 		this.config = config;
 		this.guideText = guideText;
 		this.players = players;
-		this.correctCode = Code.createRandom(config.getSpaces(), gameSpace.getWorld().getRandom());
+		this.correctCode = Code.createRandom(config.getPegTag(), config.getSpaces(), gameSpace.getWorld().getRandom());
 	}
 
 	public static void setRules(GameLogic game) {
@@ -203,14 +207,14 @@ public class CodebreakerActivePhase {
 					player.sendMessage(this.turnManager.getOtherTurnMessage(), false);
 					return ActionResult.FAIL;
 				}
-				if(state.isOf(Blocks.BEDROCK)) {
+				if(state.isOf(this.config.getResetBlock().getBlock())) {
 					this.eraseQueuedCode(world, hitResult.getBlockPos());
 				}
-				else if(state.isOf(Blocks.SEA_LANTERN)) {
+				else if(state.isOf(this.config.getConfirmBlock().getBlock())) {
 					this.submitCode(player);
 					this.createQueuedCode();
 				}
-				else if(state.isIn(Codebreaker.CODE_PEGS)) {
+				else if(state.isIn(this.config.getPegTag())) {
 					this.queueCodePeg(world, hitResult.getBlockPos(), state);
 				}
 				this.refreshControlPads();
@@ -218,7 +222,7 @@ public class CodebreakerActivePhase {
 			}
 		}
 
-		return ActionResult.FAIL;
+		return ActionResult.PASS;
 	}
 
 	private ActionResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {

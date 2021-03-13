@@ -1,8 +1,8 @@
 package io.github.haykam821.codebreaker.game.code;
 
-import io.github.haykam821.codebreaker.Codebreaker;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.tag.Tag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,14 +63,14 @@ public class Code {
 	 * Creates a code consisting of random pegs.
 	 * @param spaces the number of spaces in the code
 	 */
-	public static Code createRandom(int spaces, Random random) {
+	public static Code createRandom(Tag<Block> blockTag, int spaces, Random random) {
 		Code code = new Code(spaces);
 
-		List<Block> pegs = new ArrayList<>(Codebreaker.CODE_PEGS.values());
+		List<Block> pegs = new ArrayList<>(blockTag.values());
 		for (int index = 0; index < spaces; index++) {
 			// Refill peg choices if empty
 			if (pegs.size() == 0) {
-				pegs = new ArrayList<>(Codebreaker.CODE_PEGS.values());
+				pegs = new ArrayList<>(blockTag.values());
 			}
 
 			int pegIndex = random.nextInt(pegs.size());

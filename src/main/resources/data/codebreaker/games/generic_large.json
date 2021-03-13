@@ -1,6 +1,6 @@
 {
 	"type": "codebreaker:codebreaker",
-	"translation": "game.codebreaker.large.generic",
+	"translation": "game.codebreaker.generic_large",
 	"board_block": {
 		"type": "minecraft:simple_state_provider",
 		"state": {

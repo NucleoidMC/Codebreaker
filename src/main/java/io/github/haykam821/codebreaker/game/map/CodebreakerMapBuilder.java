@@ -1,6 +1,6 @@
 package io.github.haykam821.codebreaker.game.map;
 
-import io.github.haykam821.codebreaker.Codebreaker;
+import io.github.haykam821.codebreaker.Main;
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.map.generic.CodebreakerGenericMapConfig;
 import net.minecraft.block.Blocks;
@@ -8,7 +8,10 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.Heightmap;
-import xyz.nucleoid.plasmid.map.template.*;
+import xyz.nucleoid.plasmid.map.template.MapTemplate;
+import xyz.nucleoid.plasmid.map.template.MapTemplateMetadata;
+import xyz.nucleoid.plasmid.map.template.MapTemplateSerializer;
+import xyz.nucleoid.plasmid.map.template.TemplateRegion;
 import xyz.nucleoid.plasmid.util.BlockBounds;
 
 import java.io.IOException;
@@ -33,7 +36,7 @@ public class CodebreakerMapBuilder {
 						template = MapTemplateSerializer.INSTANCE.loadFromResource(path);
 					} catch (IOException e) {
 						template = MapTemplate.createEmpty();
-						Codebreaker.LOGGER.error("Failed to find map template at {}", path, e);
+						Main.LOGGER.error("Failed to find map template at {}", path, e);
 					}
 
 					return this.buildFromTemplate(template);
@@ -65,9 +68,9 @@ public class CodebreakerMapBuilder {
 		}
 
 		// Control Pad
-		BlockPos controlPadOrigin = ORIGIN.add(2 + floorBounds.getCenter().getX() - Codebreaker.CODE_PEGS.values().size(), 0, 6);
+		BlockPos controlPadOrigin = ORIGIN.add(2 + floorBounds.getCenter().getX() - this.config.getPegTag().values().size(), 0, 6);
 
-		map.addControlPad(new ControlPad(controlPadOrigin, Direction.EAST, Codebreaker.CODE_PEGS.values()));
+		map.addControlPad(new ControlPad(this.config, controlPadOrigin, Direction.EAST));
 		map.addBoard(new Board(codeOrigin, Direction.SOUTH));
 		map.setSpawnPos(new BlockPos(floorBounds.getCenter()));
 		map.setRulesPos(new BlockPos(floorBounds.getCenter()).add(0, 2.8, 9));
@@ -83,27 +86,27 @@ public class CodebreakerMapBuilder {
 			BlockPos pos = new BlockPos(region.getBounds().getCenter());
 			map.addBoard(new Board(pos, getDirectionForRegion(region)));
 		});
+
 		metadata.getRegions("control_pad").forEach(region -> {
 			BlockPos pos = new BlockPos(region.getBounds().getCenter());
-			map.addControlPad(new ControlPad(pos, getDirectionForRegion(region), Codebreaker.CODE_PEGS.values()));
+			map.addControlPad(new ControlPad(this.config, pos, getDirectionForRegion(region)));
 		});
-		BlockBounds rulesBounds = metadata.getFirstRegionBounds("rules");
-		if (rulesBounds == null) {
-			rulesBounds = template.getBounds();
-		}
-
-		BlockPos rulesPos = new BlockPos(rulesBounds.getCenter());
-		map.setRulesPos(rulesPos);
 
 		BlockBounds centerSpawnBounds = metadata.getFirstRegionBounds("spawn");
 		if (centerSpawnBounds == null) {
 			centerSpawnBounds = template.getBounds();
 		}
-
 		BlockPos spawnPos = new BlockPos(centerSpawnBounds.getCenter());
 		spawnPos = template.getTopPos(spawnPos.getX(), spawnPos.getZ(), Heightmap.Type.WORLD_SURFACE).up();
 
 		map.setSpawnPos(spawnPos);
+
+		BlockBounds rulesBounds = metadata.getFirstRegionBounds("rules");
+		if (rulesBounds == null) {
+			rulesBounds = centerSpawnBounds;
+		}
+		BlockPos rulesPos = new BlockPos(rulesBounds.getCenter());
+		map.setRulesPos(rulesPos);
 
 		return map;
 	}

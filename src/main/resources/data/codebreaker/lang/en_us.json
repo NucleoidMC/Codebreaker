@@ -1,8 +1,8 @@
 {
 	"game.codebreaker.codebreaker": "Codebreaker",
-	"game.codebreaker.large.generic": "Codebreaker: Generic (Large)",
-	"game.codebreaker.standard.computer": "Codebreaker: Computer (Standard)",
-	"game.codebreaker.standard.generic": "Codebreaker: Generic (Standard)",
+	"game.codebreaker.generic_large": "Codebreaker: Generic (Large)",
+	"game.codebreaker.computer": "Codebreaker: Computer",
+	"game.codebreaker.generic_standard": "Codebreaker: Generic (Standard)",
 	"text.codebreaker.guide.acacia_button_indicates_hit": "An acacia button indicates a hit; one guessed color is in the correct spot.",
 	"text.codebreaker.guide.birch_button_indicates_miss": "A birch button indicates a miss; one guessed color is not present on the actual code.",
 	"text.codebreaker.guide.guess_the_code": "Guess the hidden code by selecting colors!",
