@@ -3,8 +3,8 @@ package io.github.haykam821.codebreaker.game;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.haykam821.codebreaker.game.map.generic.CbGenericMapConfig;
-import io.github.haykam821.codebreaker.game.phase.CbActivePhase;
+import io.github.haykam821.codebreaker.game.map.generic.CodebreakerGenericMapConfig;
+import io.github.haykam821.codebreaker.game.phase.CodebreakerActivePhase;
 import io.github.haykam821.codebreaker.game.turn.CyclicTurnManager;
 import io.github.haykam821.codebreaker.game.turn.NoTurnManager;
 import io.github.haykam821.codebreaker.game.turn.TurnManager;
@@ -15,28 +15,28 @@ import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import net.minecraft.world.gen.stateprovider.SimpleBlockStateProvider;
 import xyz.nucleoid.plasmid.game.config.PlayerConfig;
 
-public class CbConfig {
+public class CodebreakerConfig {
 	private static final BlockStateProvider DEFAULT_BOARD_PROVIDER = new SimpleBlockStateProvider(Blocks.WHITE_CONCRETE.getDefaultState());
 
-	public static final Codec<CbConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-		PlayerConfig.CODEC.fieldOf("players").forGetter(CbConfig::getPlayerConfig),
-		Codec.either(CbGenericMapConfig.CODEC, Identifier.CODEC).fieldOf("map").forGetter(CbConfig::getMapConfig),
-		BlockStateProvider.TYPE_CODEC.optionalFieldOf("board_block", DEFAULT_BOARD_PROVIDER).forGetter(CbConfig::getBoardProvider),
-		Codec.INT.optionalFieldOf("guide_ticks", -1).forGetter(CbConfig::getGuideTicks),
-		Codec.INT.fieldOf("chances").forGetter(CbConfig::getChances),
-		Codec.INT.fieldOf("spaces").forGetter(CbConfig::getSpaces),
+	public static final Codec<CodebreakerConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+		PlayerConfig.CODEC.fieldOf("players").forGetter(CodebreakerConfig::getPlayerConfig),
+		Codec.either(CodebreakerGenericMapConfig.CODEC, Identifier.CODEC).fieldOf("map").forGetter(CodebreakerConfig::getMapConfig),
+		BlockStateProvider.TYPE_CODEC.optionalFieldOf("board_block", DEFAULT_BOARD_PROVIDER).forGetter(CodebreakerConfig::getBoardProvider),
+		Codec.INT.optionalFieldOf("guide_ticks", -1).forGetter(CodebreakerConfig::getGuideTicks),
+		Codec.INT.fieldOf("chances").forGetter(CodebreakerConfig::getChances),
+		Codec.INT.fieldOf("spaces").forGetter(CodebreakerConfig::getSpaces),
 		Codec.BOOL.optionalFieldOf("turns", true).forGetter(config -> config.turns)
-	).apply(instance, CbConfig::new));
+	).apply(instance, CodebreakerConfig::new));
 
 	private final PlayerConfig playerConfig;
-	private final Either<CbGenericMapConfig, Identifier> mapConfig;
+	private final Either<CodebreakerGenericMapConfig, Identifier> mapConfig;
 	private final BlockStateProvider boardBlock;
 	private final int guideTicks;
 	private final int chances;
 	private final int spaces;
 	private final boolean turns;
 
-	public CbConfig(PlayerConfig playerConfig, Either<CbGenericMapConfig, Identifier> mapConfig, BlockStateProvider boardBlock, int guideTicks, int chances, int spaces, boolean turns) {
+	public CodebreakerConfig(PlayerConfig playerConfig, Either<CodebreakerGenericMapConfig, Identifier> mapConfig, BlockStateProvider boardBlock, int guideTicks, int chances, int spaces, boolean turns) {
 		this.playerConfig = playerConfig;
 		this.mapConfig = mapConfig;
 		this.boardBlock = boardBlock;
@@ -50,7 +50,7 @@ public class CbConfig {
 		return this.playerConfig;
 	}
 
-	public Either<CbGenericMapConfig, Identifier> getMapConfig() {
+	public Either<CodebreakerGenericMapConfig, Identifier> getMapConfig() {
 		return mapConfig;
 	}
 
@@ -70,7 +70,7 @@ public class CbConfig {
 		return this.spaces;
 	}
 
-	public TurnManager createTurnManager(CbActivePhase phase, ServerPlayerEntity initialTurn) {
+	public TurnManager createTurnManager(CodebreakerActivePhase phase, ServerPlayerEntity initialTurn) {
 		return this.turns ? new CyclicTurnManager(phase, initialTurn) : new NoTurnManager(phase);
 	}
 }

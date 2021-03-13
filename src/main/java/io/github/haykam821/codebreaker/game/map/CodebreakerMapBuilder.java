@@ -1,32 +1,30 @@
 package io.github.haykam821.codebreaker.game.map;
 
 import io.github.haykam821.codebreaker.Codebreaker;
-import io.github.haykam821.codebreaker.game.CbConfig;
-import io.github.haykam821.codebreaker.game.map.generic.CbGenericMapConfig;
+import io.github.haykam821.codebreaker.game.CodebreakerConfig;
+import io.github.haykam821.codebreaker.game.map.generic.CodebreakerGenericMapConfig;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.Heightmap;
-import net.minecraft.world.gen.stateprovider.BlockStateProvider;
-import net.minecraft.world.gen.stateprovider.SimpleBlockStateProvider;
 import xyz.nucleoid.plasmid.map.template.*;
 import xyz.nucleoid.plasmid.util.BlockBounds;
 
 import java.io.IOException;
 import java.util.Random;
 
-public class CbMapBuilder {
+public class CodebreakerMapBuilder {
 	private static final BlockPos ORIGIN = new BlockPos(0, 64, 0);
 	private static final int FLOOR_WIDTH = 18;
 
-	private final CbConfig config;
+	private final CodebreakerConfig config;
 
-	public CbMapBuilder(CbConfig config) {
+	public CodebreakerMapBuilder(CodebreakerConfig config) {
 		this.config = config;
 	}
 
-	public CbMap create(MinecraftServer server) {
+	public CodebreakerMap create(MinecraftServer server) {
 		return this.config.getMapConfig().map(
 				this::buildDefault,
 				path -> {
@@ -43,9 +41,9 @@ public class CbMapBuilder {
 		);
 	}
 
-	public CbMap buildDefault(CbGenericMapConfig mapConfig) {
+	public CodebreakerMap buildDefault(CodebreakerGenericMapConfig mapConfig) {
 		MapTemplate template = MapTemplate.createEmpty();
-		CbMap map = new CbMap(template);
+		CodebreakerMap map = new CodebreakerMap(template);
 
 		Random random = new Random();
 
@@ -69,25 +67,25 @@ public class CbMapBuilder {
 		// Control Pad
 		BlockPos controlPadOrigin = ORIGIN.add(2 + floorBounds.getCenter().getX() - Codebreaker.CODE_PEGS.values().size(), 0, 6);
 
-		map.addControlPad(new CbControlPad(controlPadOrigin, Direction.EAST, Codebreaker.CODE_PEGS.values()));
-		map.addBoard(new CbBoard(codeOrigin, Direction.SOUTH));
+		map.addControlPad(new ControlPad(controlPadOrigin, Direction.EAST, Codebreaker.CODE_PEGS.values()));
+		map.addBoard(new Board(codeOrigin, Direction.SOUTH));
 		map.setSpawnPos(new BlockPos(floorBounds.getCenter()));
 		map.setRulesPos(new BlockPos(floorBounds.getCenter()).add(0, 2.8, 9));
 
 		return map;
 	}
 
-	private CbMap buildFromTemplate(MapTemplate template) {
-		CbMap map = new CbMap(template);
+	private CodebreakerMap buildFromTemplate(MapTemplate template) {
+		CodebreakerMap map = new CodebreakerMap(template);
 
 		MapTemplateMetadata metadata = template.getMetadata();
 		metadata.getRegions("board").forEach(region -> {
 			BlockPos pos = new BlockPos(region.getBounds().getCenter());
-			map.addBoard(new CbBoard(pos, getDirectionForRegion(region)));
+			map.addBoard(new Board(pos, getDirectionForRegion(region)));
 		});
 		metadata.getRegions("control_pad").forEach(region -> {
 			BlockPos pos = new BlockPos(region.getBounds().getCenter());
-			map.addControlPad(new CbControlPad(pos, getDirectionForRegion(region), Codebreaker.CODE_PEGS.values()));
+			map.addControlPad(new ControlPad(pos, getDirectionForRegion(region), Codebreaker.CODE_PEGS.values()));
 		});
 		BlockBounds rulesBounds = metadata.getFirstRegionBounds("rules");
 		if (rulesBounds == null) {

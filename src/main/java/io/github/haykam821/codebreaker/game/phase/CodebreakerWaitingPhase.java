@@ -1,8 +1,8 @@
 package io.github.haykam821.codebreaker.game.phase;
 
-import io.github.haykam821.codebreaker.game.CbConfig;
-import io.github.haykam821.codebreaker.game.map.CbMap;
-import io.github.haykam821.codebreaker.game.map.CbMapBuilder;
+import io.github.haykam821.codebreaker.game.CodebreakerConfig;
+import io.github.haykam821.codebreaker.game.map.CodebreakerMap;
+import io.github.haykam821.codebreaker.game.map.CodebreakerMapBuilder;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -24,7 +24,7 @@ import xyz.nucleoid.plasmid.game.config.PlayerConfig;
 import xyz.nucleoid.plasmid.game.event.*;
 import xyz.nucleoid.plasmid.game.player.JoinResult;
 
-public class CbWaitingPhase {
+public class CodebreakerWaitingPhase {
 	private static final Formatting GUIDE_FORMATTING = Formatting.GOLD;
 	private static final Text[] GUIDE_LINES = {
 		new TranslatableText("game.codebreaker.codebreaker").formatted(GUIDE_FORMATTING).formatted(Formatting.BOLD),
@@ -36,29 +36,29 @@ public class CbWaitingPhase {
 	};
 
 	private final GameSpace gameSpace;
-	private final CbMap map;
-	private final CbConfig config;
+	private final CodebreakerMap map;
+	private final CodebreakerConfig config;
 	private FloatingText guideText;
 
-	public CbWaitingPhase(GameSpace gameSpace, CbMap map, CbConfig config) {
+	public CodebreakerWaitingPhase(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config) {
 		this.gameSpace = gameSpace;
 		this.map = map;
 		this.config = config;
 	}
 
-	public static GameOpenProcedure open(GameOpenContext<CbConfig> context) {
-		CbMapBuilder mapBuilder = new CbMapBuilder(context.getConfig());
-		CbMap map = mapBuilder.create(context.getServer());
+	public static GameOpenProcedure open(GameOpenContext<CodebreakerConfig> context) {
+		CodebreakerMapBuilder mapBuilder = new CodebreakerMapBuilder(context.getConfig());
+		CodebreakerMap map = mapBuilder.create(context.getServer());
 
 		BubbleWorldConfig worldConfig = new BubbleWorldConfig()
 			.setGenerator(map.createGenerator(context.getServer()))
 			.setDefaultGameMode(GameMode.ADVENTURE);
 
 		return context.createOpenProcedure(worldConfig, game -> {
-			CbWaitingPhase waiting = new CbWaitingPhase(game.getSpace(), map, context.getConfig());
+			CodebreakerWaitingPhase waiting = new CodebreakerWaitingPhase(game.getSpace(), map, context.getConfig());
 
 			GameWaitingLobby.applyTo(game, context.getConfig().getPlayerConfig());
-			CbActivePhase.setRules(game);
+			CodebreakerActivePhase.setRules(game);
 
 			// Listeners
 			game.on(GameTickListener.EVENT, waiting::tick);
@@ -84,23 +84,23 @@ public class CbWaitingPhase {
 			return StartResult.NOT_ENOUGH_PLAYERS;
 		}
 
-		CbActivePhase.open(this.gameSpace, this.map, this.config, this.guideText);
+		CodebreakerActivePhase.open(this.gameSpace, this.map, this.config, this.guideText);
 		return StartResult.OK;
 	}
 
 	public void addPlayer(ServerPlayerEntity player) {
-		CbActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
+		CodebreakerActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
 	}
 
 	public ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
-		CbActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
+		CodebreakerActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
 		return ActionResult.SUCCESS;
 	}
 
 	public void tick() {
 		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
 			if (this.map.isBelowZero(player)) {
-				CbActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
+				CodebreakerActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
 			}
 		}
 	}

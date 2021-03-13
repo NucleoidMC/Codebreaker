@@ -1,7 +1,7 @@
 package io.github.haykam821.codebreaker;
 
-import io.github.haykam821.codebreaker.game.CbConfig;
-import io.github.haykam821.codebreaker.game.phase.CbWaitingPhase;
+import io.github.haykam821.codebreaker.game.CodebreakerConfig;
+import io.github.haykam821.codebreaker.game.phase.CodebreakerWaitingPhase;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.tag.TagRegistry;
 import net.minecraft.block.Block;
@@ -18,8 +18,8 @@ public class Codebreaker implements ModInitializer {
 	private static final Identifier CODE_PEGS_ID = new Identifier(ID, "code_pegs");
 	public static final Tag<Block> CODE_PEGS = TagRegistry.block(CODE_PEGS_ID);
 
-	private static final Identifier CODEBREAKER_ID = new Identifier(ID, "simple");
-	public static final GameType<CbConfig> CODEBREAKER_TYPE = GameType.register(CODEBREAKER_ID, CbWaitingPhase::open, CbConfig.CODEC);
+	private static final Identifier CODEBREAKER_ID = new Identifier(ID, "codebreaker");
+	public static final GameType<CodebreakerConfig> CODEBREAKER_TYPE = GameType.register(CODEBREAKER_ID, CodebreakerWaitingPhase::open, CodebreakerConfig.CODEC);
 
 	@Override
 	public void onInitialize() {

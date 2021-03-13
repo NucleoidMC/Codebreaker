@@ -1,15 +1,15 @@
 package io.github.haykam821.codebreaker.game.turn;
 
-import io.github.haykam821.codebreaker.game.phase.CbActivePhase;
+import io.github.haykam821.codebreaker.game.phase.CodebreakerActivePhase;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 
 public abstract class TurnManager {
-	protected final CbActivePhase phase;
+	protected final CodebreakerActivePhase phase;
 
-	public TurnManager(CbActivePhase phase) {
+	public TurnManager(CodebreakerActivePhase phase) {
 		this.phase = phase;
 	}
 

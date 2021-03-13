@@ -1,6 +1,6 @@
 package io.github.haykam821.codebreaker.game.turn;
 
-import io.github.haykam821.codebreaker.game.phase.CbActivePhase;
+import io.github.haykam821.codebreaker.game.phase.CodebreakerActivePhase;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.List;
@@ -8,7 +8,7 @@ import java.util.List;
 public class CyclicTurnManager extends TurnManager {
 	private ServerPlayerEntity turn;
 
-	public CyclicTurnManager(CbActivePhase phase, ServerPlayerEntity initialTurn) {
+	public CyclicTurnManager(CodebreakerActivePhase phase, ServerPlayerEntity initialTurn) {
 		super(phase);
 		this.turn = initialTurn;
 	}

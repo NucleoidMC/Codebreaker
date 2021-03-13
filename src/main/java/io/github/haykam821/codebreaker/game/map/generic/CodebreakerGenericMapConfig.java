@@ -6,16 +6,16 @@ import net.minecraft.block.Blocks;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import net.minecraft.world.gen.stateprovider.SimpleBlockStateProvider;
 
-public final class CbGenericMapConfig {
+public final class CodebreakerGenericMapConfig {
 	private static final BlockStateProvider DEFAULT_FLOOR_PROVIDER = new SimpleBlockStateProvider(Blocks.GRAY_CONCRETE.getDefaultState());
 
-	public static final Codec<CbGenericMapConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-			BlockStateProvider.TYPE_CODEC.optionalFieldOf("floor_provider", DEFAULT_FLOOR_PROVIDER).forGetter(CbGenericMapConfig::getFloorProvider)
-	).apply(instance, CbGenericMapConfig::new));
+	public static final Codec<CodebreakerGenericMapConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+			BlockStateProvider.TYPE_CODEC.optionalFieldOf("floor_provider", DEFAULT_FLOOR_PROVIDER).forGetter(CodebreakerGenericMapConfig::getFloorProvider)
+	).apply(instance, CodebreakerGenericMapConfig::new));
 
 	private final BlockStateProvider floorBlock;
 
-	public CbGenericMapConfig(BlockStateProvider floorBlock) {
+	public CodebreakerGenericMapConfig(BlockStateProvider floorBlock) {
 		this.floorBlock = floorBlock;
 	}
 

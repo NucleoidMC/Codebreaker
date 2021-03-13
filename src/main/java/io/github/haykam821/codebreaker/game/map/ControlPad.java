@@ -9,12 +9,12 @@ import xyz.nucleoid.plasmid.util.BlockBounds;
 
 import java.util.List;
 
-public class CbControlPad {
+public class ControlPad {
 	private final BlockPos leftPos;
 	private final Direction direction;
 	private final List<Block> pegs;
 
-	public CbControlPad(BlockPos leftPos, Direction direction, List<Block> pegs) {
+	public ControlPad(BlockPos leftPos, Direction direction, List<Block> pegs) {
 		this.leftPos = leftPos;
 		this.direction = direction;
 		this.pegs = pegs;

@@ -10,15 +10,15 @@ import xyz.nucleoid.plasmid.map.template.TemplateChunkGenerator;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class CbMap {
+public final class CodebreakerMap {
 	private MapTemplate template;
 	private BlockPos spawnPos;
 	private BlockPos rulesPos;
 
-	private final List<CbBoard> boards = new ArrayList<>();
-	private final List<CbControlPad> controlPads = new ArrayList<>();
+	private final List<Board> boards = new ArrayList<>();
+	private final List<ControlPad> controlPads = new ArrayList<>();
 
-	public CbMap(MapTemplate template) {
+	public CodebreakerMap(MapTemplate template) {
 		this.template = template;
 	}
 
@@ -38,19 +38,19 @@ public final class CbMap {
 		return rulesPos;
 	}
 
-	public void addBoard(CbBoard board) {
+	public void addBoard(Board board) {
 		boards.add(board);
 	}
 
-	public List<CbBoard> getBoards() {
+	public List<Board> getBoards() {
 		return boards;
 	}
 
-	public void addControlPad(CbControlPad controlPad) {
+	public void addControlPad(ControlPad controlPad) {
 		controlPads.add(controlPad);
 	}
 
-	public List<CbControlPad> getControlPads() {
+	public List<ControlPad> getControlPads() {
 		return controlPads;
 	}
 

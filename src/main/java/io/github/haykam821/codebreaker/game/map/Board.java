@@ -1,6 +1,6 @@
 package io.github.haykam821.codebreaker.game.map;
 
-import io.github.haykam821.codebreaker.game.CbConfig;
+import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import io.github.haykam821.codebreaker.game.code.CodeResult;
 import io.github.haykam821.codebreaker.game.code.ComparedCode;
@@ -9,11 +9,11 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.WorldAccess;
 
-public class CbBoard {
+public class Board {
 	private final BlockPos topLeftPos;
 	private final Direction facingDirection;
 
-	public CbBoard(BlockPos topLeftPos, Direction facingDirection) {
+	public Board(BlockPos topLeftPos, Direction facingDirection) {
 		this.topLeftPos = topLeftPos;
 		this.facingDirection = facingDirection;
 	}
@@ -26,7 +26,7 @@ public class CbBoard {
 		return facingDirection;
 	}
 
-	public void build(WorldAccess world, CbConfig config, Code code, int index) {
+	public void build(WorldAccess world, CodebreakerConfig config, Code code, int index) {
 		BlockPos.Mutable pos = new BlockPos(getTopLeftPos()).mutableCopy().move(getFacingDirection().rotateYCounterclockwise(), index);
 		for(BlockState state : code.getPegs()) {
 			world.setBlockState(pos, state == null ? config.getBoardProvider().getBlockState(world.getRandom(), pos) : state, 3);
@@ -34,7 +34,7 @@ public class CbBoard {
 		}
 	}
 
-	public void buildResult(WorldAccess world, CbConfig config, ComparedCode comparedCode, int index) {
+	public void buildResult(WorldAccess world, CodebreakerConfig config, ComparedCode comparedCode, int index) {
 		BlockPos.Mutable pos = new BlockPos(getTopLeftPos()).mutableCopy().move(getFacingDirection().rotateYCounterclockwise(), index).move(getFacingDirection(), 1).move(Direction.DOWN, comparedCode.getPegs().length);
 		for (int i = 0; i < comparedCode.getPegs().length; i++) {
 			if (i >= comparedCode.getResults().size()) {

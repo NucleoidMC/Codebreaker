@@ -2,12 +2,12 @@ package io.github.haykam821.codebreaker.game.phase;
 
 import com.google.common.collect.Lists;
 import io.github.haykam821.codebreaker.Codebreaker;
-import io.github.haykam821.codebreaker.game.CbConfig;
+import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import io.github.haykam821.codebreaker.game.code.ComparedCode;
-import io.github.haykam821.codebreaker.game.map.CbBoard;
-import io.github.haykam821.codebreaker.game.map.CbControlPad;
-import io.github.haykam821.codebreaker.game.map.CbMap;
+import io.github.haykam821.codebreaker.game.map.Board;
+import io.github.haykam821.codebreaker.game.map.ControlPad;
+import io.github.haykam821.codebreaker.game.map.CodebreakerMap;
 import io.github.haykam821.codebreaker.game.turn.TurnManager;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -34,11 +34,11 @@ import xyz.nucleoid.plasmid.game.rule.RuleResult;
 
 import java.util.List;
 
-public class CbActivePhase {
+public class CodebreakerActivePhase {
 	private final GameSpace gameSpace;
 	private final ServerWorld world;
-	private final CbMap map;
-	private final CbConfig config;
+	private final CodebreakerMap map;
+	private final CodebreakerConfig config;
 	private final FloatingText guideText;
 	private final List<ServerPlayerEntity> players;
 	private final Code correctCode;
@@ -47,7 +47,7 @@ public class CbActivePhase {
 	private TurnManager turnManager;
 	private int ticks = 0;
 
-	public CbActivePhase(GameSpace gameSpace, CbMap map, CbConfig config, FloatingText guideText, List<ServerPlayerEntity> players) {
+	public CodebreakerActivePhase(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config, FloatingText guideText, List<ServerPlayerEntity> players) {
 		this.gameSpace = gameSpace;
 		this.world = gameSpace.getWorld();
 		this.map = map;
@@ -66,11 +66,11 @@ public class CbActivePhase {
 		game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
 	}
 
-	public static void open(GameSpace gameSpace, CbMap map, CbConfig config, FloatingText guide) {
-		CbActivePhase phase = new CbActivePhase(gameSpace, map, config, guide, Lists.newArrayList(gameSpace.getPlayers()));
+	public static void open(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config, FloatingText guide) {
+		CodebreakerActivePhase phase = new CodebreakerActivePhase(gameSpace, map, config, guide, Lists.newArrayList(gameSpace.getPlayers()));
 
 		gameSpace.openGame(game -> {
-			CbActivePhase.setRules(game);
+			CodebreakerActivePhase.setRules(game);
 
 			// Listeners
 			game.on(GameOpenListener.EVENT, phase::open);
@@ -83,7 +83,7 @@ public class CbActivePhase {
 		});
 	}
 
-	public static void spawn(ServerWorld world, CbMap map, ServerPlayerEntity player) {
+	public static void spawn(ServerWorld world, CodebreakerMap map, ServerPlayerEntity player) {
 		BlockPos spawnPos = map.getSpawnPos();
 		player.teleport(world, spawnPos.getX(), spawnPos.getY() + 1, spawnPos.getZ(), 180, 0);
 	}
@@ -91,7 +91,7 @@ public class CbActivePhase {
 	private void open() {
 		for(ServerPlayerEntity player : this.players) {
 			player.setGameMode(GameMode.ADVENTURE);
-			CbActivePhase.spawn(this.world, this.map, player);
+			CodebreakerActivePhase.spawn(this.world, this.map, player);
 
 			if(this.turnManager == null) {
 				this.turnManager = config.createTurnManager(this, player);
@@ -109,7 +109,7 @@ public class CbActivePhase {
 
 		for(ServerPlayerEntity player : this.players) {
 			if(this.map.isBelowZero(player)) {
-				CbActivePhase.spawn(this.world, this.map, player);
+				CodebreakerActivePhase.spawn(this.world, this.map, player);
 			}
 		}
 	}
@@ -129,17 +129,17 @@ public class CbActivePhase {
 
 	private void addPlayer(ServerPlayerEntity player) {
 		this.setSpectator(player);
-		CbActivePhase.spawn(this.world, this.map, player);
+		CodebreakerActivePhase.spawn(this.world, this.map, player);
 	}
 
 	private void refreshBoards() {
-		for(CbBoard board : this.map.getBoards()) {
+		for(Board board : this.map.getBoards()) {
 			board.build(this.world, this.config, this.queuedCode, this.queuedIndex);
 		}
 	}
 
 	private void refreshControlPads() {
-		for(CbControlPad controlPad : this.map.getControlPads()) {
+		for(ControlPad controlPad : this.map.getControlPads()) {
 			boolean filled = false;
 			if(this.queuedCode != null) filled = this.queuedCode.isCompletelyFilled();
 			controlPad.build(this.world, filled);
@@ -148,7 +148,7 @@ public class CbActivePhase {
 
 	private void submitCode(ServerPlayerEntity player) {
 		ComparedCode comparedCode = new ComparedCode(this.queuedCode.getPegs(), this.correctCode);
-		for(CbBoard board : this.map.getBoards()) {
+		for(Board board : this.map.getBoards()) {
 			// Builds the buttons result in all boards
 			board.buildResult(this.world, this.config, comparedCode, this.queuedIndex);
 		}
@@ -197,7 +197,7 @@ public class CbActivePhase {
 		BlockState state = player.getEntityWorld().getBlockState(hitResult.getBlockPos());
 		World world = player.getEntityWorld();
 
-		for(CbControlPad controlPad : this.map.getControlPads()) {
+		for(ControlPad controlPad : this.map.getControlPads()) {
 			if(controlPad.getBounds().contains(hitResult.getBlockPos())) {
 				if(!this.turnManager.isTurn(player)) {
 					player.sendMessage(this.turnManager.getOtherTurnMessage(), false);
@@ -227,7 +227,7 @@ public class CbActivePhase {
 
 	private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
 		if(this.players.contains(player)) {
-			CbActivePhase.spawn(this.world, this.map, player);
+			CodebreakerActivePhase.spawn(this.world, this.map, player);
 		}
 		return ActionResult.FAIL;
 	}
@@ -242,7 +242,7 @@ public class CbActivePhase {
 		return this.gameSpace;
 	}
 
-	public CbConfig getConfig() {
+	public CodebreakerConfig getConfig() {
 		return this.config;
 	}
 
