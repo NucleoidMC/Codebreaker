@@ -1,0 +1,18 @@
+{
+	"type": "codebreaker:simple",
+	"translation": "game.codebreaker.standard.computer",
+	"board_block": {
+		"type": "minecraft:simple_state_provider",
+		"state": {
+			"Name": "minecraft:black_concrete"
+		}
+	},
+	"map": "codebreaker:computer",
+	"chances": 8,
+	"spaces": 4,
+	"players": {
+		"min": 1,
+		"max": 2,
+		"threshold": 2
+	}
+}

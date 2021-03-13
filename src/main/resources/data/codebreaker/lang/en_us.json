@@ -1,15 +1,16 @@
 {
 	"game.codebreaker.codebreaker": "Codebreaker",
-	"game.codebreaker.large": "Large Codebreaker",
-	"game.codebreaker.standard": "Standard Codebreaker",
+	"game.codebreaker.large.generic": "Codebreaker: Generic (Large)",
+	"game.codebreaker.standard.computer": "Codebreaker: Computer (Standard)",
+	"game.codebreaker.standard.generic": "Codebreaker: Generic (Standard)",
 	"text.codebreaker.guide.acacia_button_indicates_hit": "An acacia button indicates a hit; one guessed color is in the correct spot.",
 	"text.codebreaker.guide.birch_button_indicates_miss": "A birch button indicates a miss; one guessed color is not present on the actual code.",
 	"text.codebreaker.guide.guess_the_code": "Guess the hidden code by selecting colors!",
 	"text.codebreaker.guide.guessing_gives_results": "A failed guess will show hits, blows, and misses.",
 	"text.codebreaker.guide.stone_button_indicates_blow": "A stone button indicates a blow; one guessed color is present on the actual code.",
 	"text.codebreaker.lose": "Nobody won the game within %s rounds!",
-	"text.codebreaker.other_turn": "It is currently %s's turn.",
-	"text.codebreaker.win": "%s won the game after %s rounds.",
 	"text.codebreaker.next_turn": "It is now %s's turn.",
-	"text.codebreaker.no_turn": "There is no player with the turn."
+	"text.codebreaker.no_turn": "There is no player with the turn.",
+	"text.codebreaker.other_turn": "It is currently %s's turn.",
+	"text.codebreaker.win": "%s won the game after %s rounds."
 }

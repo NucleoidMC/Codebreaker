@@ -18,7 +18,7 @@ public class Codebreaker implements ModInitializer {
 	private static final Identifier CODE_PEGS_ID = new Identifier(ID, "code_pegs");
 	public static final Tag<Block> CODE_PEGS = TagRegistry.block(CODE_PEGS_ID);
 
-	private static final Identifier CODEBREAKER_ID = new Identifier(ID, "codebreaker");
+	private static final Identifier CODEBREAKER_ID = new Identifier(ID, "simple");
 	public static final GameType<CbConfig> CODEBREAKER_TYPE = GameType.register(CODEBREAKER_ID, CbWaitingPhase::open, CbConfig.CODEC);
 
 	@Override

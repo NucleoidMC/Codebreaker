@@ -6,24 +6,36 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import xyz.nucleoid.plasmid.map.template.MapTemplate;
 import xyz.nucleoid.plasmid.map.template.TemplateChunkGenerator;
-import xyz.nucleoid.plasmid.util.BlockBounds;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class CbMap {
-	private final MapTemplate template;
-	private final BlockPos spawnPos;
+	private MapTemplate template;
+	private BlockPos spawnPos;
+	private BlockPos rulesPos;
+
 	private final List<CbBoard> boards = new ArrayList<>();
 	private final List<CbControlPad> controlPads = new ArrayList<>();
 
-	public CbMap(MapTemplate template, BlockPos spawnPos) {
+	public CbMap(MapTemplate template) {
 		this.template = template;
+	}
+
+	public void setSpawnPos(BlockPos spawnPos) {
 		this.spawnPos = spawnPos;
 	}
 
 	public BlockPos getSpawnPos() {
 		return this.spawnPos;
+	}
+
+	public void setRulesPos(BlockPos rulesPos) {
+		this.rulesPos = rulesPos;
+	}
+
+	public BlockPos getRulesPos() {
+		return rulesPos;
 	}
 
 	public void addBoard(CbBoard board) {

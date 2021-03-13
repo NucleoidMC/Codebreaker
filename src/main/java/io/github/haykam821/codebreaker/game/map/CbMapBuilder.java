@@ -4,12 +4,13 @@ import io.github.haykam821.codebreaker.Codebreaker;
 import io.github.haykam821.codebreaker.game.CbConfig;
 import io.github.haykam821.codebreaker.game.map.generic.CbGenericMapConfig;
 import net.minecraft.block.Blocks;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.Heightmap;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import net.minecraft.world.gen.stateprovider.SimpleBlockStateProvider;
-import xyz.nucleoid.plasmid.map.template.MapTemplate;
-import xyz.nucleoid.plasmid.map.template.MapTemplateSerializer;
+import xyz.nucleoid.plasmid.map.template.*;
 import xyz.nucleoid.plasmid.util.BlockBounds;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ public class CbMapBuilder {
 		this.config = config;
 	}
 
-	public CbMap create() {
+	public CbMap create(MinecraftServer server) {
 		return this.config.getMapConfig().map(
 				this::buildDefault,
 				path -> {
@@ -44,6 +45,8 @@ public class CbMapBuilder {
 
 	public CbMap buildDefault(CbGenericMapConfig mapConfig) {
 		MapTemplate template = MapTemplate.createEmpty();
+		CbMap map = new CbMap(template);
+
 		Random random = new Random();
 
 		// Board
@@ -66,16 +69,54 @@ public class CbMapBuilder {
 		// Control Pad
 		BlockPos controlPadOrigin = ORIGIN.add(2 + floorBounds.getCenter().getX() - Codebreaker.CODE_PEGS.values().size(), 0, 6);
 
-		CbMap map = new CbMap(template, new BlockPos(floorBounds.getCenter()));
-
 		map.addControlPad(new CbControlPad(controlPadOrigin, Direction.EAST, Codebreaker.CODE_PEGS.values()));
 		map.addBoard(new CbBoard(codeOrigin, Direction.SOUTH));
+		map.setSpawnPos(new BlockPos(floorBounds.getCenter()));
+		map.setRulesPos(new BlockPos(floorBounds.getCenter()).add(0, 2.8, 9));
 
 		return map;
 	}
 
-	// TODO: Implement custom map loading
 	private CbMap buildFromTemplate(MapTemplate template) {
-		return this.buildDefault(new CbGenericMapConfig(new SimpleBlockStateProvider(Blocks.STONE.getDefaultState())));
+		CbMap map = new CbMap(template);
+
+		MapTemplateMetadata metadata = template.getMetadata();
+		metadata.getRegions("board").forEach(region -> {
+			BlockPos pos = new BlockPos(region.getBounds().getCenter());
+			map.addBoard(new CbBoard(pos, getDirectionForRegion(region)));
+		});
+		metadata.getRegions("control_pad").forEach(region -> {
+			BlockPos pos = new BlockPos(region.getBounds().getCenter());
+			map.addControlPad(new CbControlPad(pos, getDirectionForRegion(region), Codebreaker.CODE_PEGS.values()));
+		});
+		BlockBounds rulesBounds = metadata.getFirstRegionBounds("rules");
+		if (rulesBounds == null) {
+			rulesBounds = template.getBounds();
+		}
+
+		BlockPos rulesPos = new BlockPos(rulesBounds.getCenter());
+		map.setRulesPos(rulesPos);
+
+		BlockBounds centerSpawnBounds = metadata.getFirstRegionBounds("spawn");
+		if (centerSpawnBounds == null) {
+			centerSpawnBounds = template.getBounds();
+		}
+
+		BlockPos spawnPos = new BlockPos(centerSpawnBounds.getCenter());
+		spawnPos = template.getTopPos(spawnPos.getX(), spawnPos.getZ(), Heightmap.Type.WORLD_SURFACE).up();
+
+		map.setSpawnPos(spawnPos);
+
+		return map;
+	}
+
+	private static Direction getDirectionForRegion(TemplateRegion region) {
+		String key = region.getData().getString("direction");
+		for (Direction direction : Direction.values()) {
+			if (direction.getName().equalsIgnoreCase(key)) {
+				return direction;
+			}
+		}
+		return Direction.NORTH;
 	}
 }

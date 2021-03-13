@@ -48,7 +48,7 @@ public class CbWaitingPhase {
 
 	public static GameOpenProcedure open(GameOpenContext<CbConfig> context) {
 		CbMapBuilder mapBuilder = new CbMapBuilder(context.getConfig());
-		CbMap map = mapBuilder.create();
+		CbMap map = mapBuilder.create(context.getServer());
 
 		BubbleWorldConfig worldConfig = new BubbleWorldConfig()
 			.setGenerator(map.createGenerator(context.getServer()))
@@ -107,9 +107,8 @@ public class CbWaitingPhase {
 
 	private void open() {
 		// Spawn guide text
-		Vec3d center = new Vec3d(this.map.getSpawnPos().getX(), this.map.getSpawnPos().getY() + 2.8, this.map.getSpawnPos().getZ() + 9);
+		Vec3d center = new Vec3d(this.map.getRulesPos().getX(), this.map.getRulesPos().getY(), this.map.getRulesPos().getZ());
 		this.gameSpace.getWorld().getChunk(new BlockPos(center));
-
 		this.guideText = FloatingText.spawn(this.gameSpace.getWorld(), center, GUIDE_LINES, VerticalAlign.CENTER);
 	}
 }
