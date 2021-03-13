@@ -15,8 +15,6 @@ public class Main implements ModInitializer {
 	private static final String ID = "codebreaker";
 	public static final Logger LOGGER = LogManager.getLogger(ID);
 
-	public static final Tag<Block> CODE_PEGS = TagRegistry.block(id("pegs/code_pegs"));
-
 	public static final GameType<CodebreakerConfig> CODEBREAKER_TYPE = GameType.register(id("codebreaker"), CodebreakerWaitingPhase::open, CodebreakerConfig.CODEC);
 
 	@Override
