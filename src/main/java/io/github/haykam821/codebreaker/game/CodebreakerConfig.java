@@ -3,6 +3,7 @@ package io.github.haykam821.codebreaker.game;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import io.github.haykam821.codebreaker.game.code.generator.CodeGenerator;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMapConfig;
 import io.github.haykam821.codebreaker.game.phase.CodebreakerActivePhase;
 import io.github.haykam821.codebreaker.game.turn.CyclicTurnManager;
@@ -16,26 +17,26 @@ public class CodebreakerConfig {
 		return instance.group(
 			PlayerConfig.CODEC.fieldOf("players").forGetter(CodebreakerConfig::getPlayerConfig),
 			CodebreakerMapConfig.CODEC.optionalFieldOf("map", CodebreakerMapConfig.DEFAULT).forGetter(CodebreakerConfig::getMapConfig),
+			CodeGenerator.TYPE_CODEC.fieldOf("code_generator").forGetter(CodebreakerConfig::getCodeGenerator),
 			Codec.INT.optionalFieldOf("guide_ticks", -1).forGetter(CodebreakerConfig::getGuideTicks),
 			Codec.INT.fieldOf("chances").forGetter(CodebreakerConfig::getChances),
-			Codec.INT.fieldOf("spaces").forGetter(CodebreakerConfig::getSpaces),
 			Codec.BOOL.optionalFieldOf("turns", true).forGetter(config -> config.turns)
 		).apply(instance, CodebreakerConfig::new);
 	});
 
 	private final PlayerConfig playerConfig;
 	private final CodebreakerMapConfig mapConfig;
+	private final CodeGenerator codeGenerator;
 	private final int guideTicks;
 	private final int chances;
-	private final int spaces;
 	private final boolean turns;
 
-	public CodebreakerConfig(PlayerConfig playerConfig, CodebreakerMapConfig mapConfig, int guideTicks, int chances, int spaces, boolean turns) {
+	public CodebreakerConfig(PlayerConfig playerConfig, CodebreakerMapConfig mapConfig, CodeGenerator codeGenerator, int guideTicks, int chances, boolean turns) {
 		this.playerConfig = playerConfig;
 		this.mapConfig = mapConfig;
+		this.codeGenerator = codeGenerator;
 		this.guideTicks = guideTicks;
 		this.chances = chances;
-		this.spaces = spaces;
 		this.turns = turns;
 	}
 
@@ -47,16 +48,16 @@ public class CodebreakerConfig {
 		return this.mapConfig;
 	}
 
+	public CodeGenerator getCodeGenerator() {
+		return this.codeGenerator;
+	}
+
 	public int getGuideTicks() {
 		return this.guideTicks;
 	}
 
 	public int getChances() {
 		return this.chances;
-	}
-	
-	public int getSpaces() {
-		return this.spaces;
 	}
 
 	public TurnManager createTurnManager(CodebreakerActivePhase phase, ServerPlayerEntity initialTurn) {

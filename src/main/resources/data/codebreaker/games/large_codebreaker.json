@@ -2,7 +2,10 @@
 	"type": "codebreaker:codebreaker",
 	"name": "Large Codebreaker",
 	"chances": 16,
-	"spaces": 6,
+	"code_generator": {
+		"type": "codebreaker:random",
+		"spaces": 6
+	},
 	"players": {
 		"min": 1,
 		"max": 4,

@@ -29,7 +29,7 @@ public class ComparedCode extends Code {
 
 	public boolean isCorrect() {
 		// Since the results may be shorter than the pegs, length must be checked first
-		if (this.results.size() < this.getPegs().length) {
+		if (this.results.size() < this.getLength()) {
 			return false;
 		}
 
@@ -45,8 +45,8 @@ public class ComparedCode extends Code {
 	public void build(WorldAccess world, BlockPos originPos, CodebreakerMapConfig mapConfig) {
 		super.build(world, originPos, mapConfig);
 		
-		BlockPos.Mutable pos = originPos.mutableCopy().move(0, -this.getPegs().length, 1);
-		for (int index = 0; index < this.getPegs().length; index++) {
+		BlockPos.Mutable pos = originPos.mutableCopy().move(0, -this.getLength(), 1);
+		for (int index = 0; index < this.getLength(); index++) {
 			if (index >= this.results.size()) {
 				world.setBlockState(pos, CodeResult.EMPTY, 3);
 			} else {

@@ -4,6 +4,7 @@ import java.util.Random;
 
 import io.github.haykam821.codebreaker.Main;
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
+import io.github.haykam821.codebreaker.game.code.Code;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
 import xyz.nucleoid.plasmid.map.template.MapTemplate;
@@ -19,20 +20,20 @@ public class CodebreakerMapBuilder {
 		this.config = config;
 	}
 
-	public CodebreakerMap create() {
+	public CodebreakerMap create(Random random, Code correctCode) {
 		MapTemplate template = MapTemplate.createEmpty();
 
 		CodebreakerMapConfig mapConfig = this.config.getMapConfig();
-		Random random = new Random();
+		int spaces = correctCode.getLength();
 
 		// Board
 		BlockPos boardOrigin = ORIGIN.add(1, 1, 1);
-		BlockBounds boardBounds = new BlockBounds(boardOrigin, boardOrigin.add(this.config.getChances() + 1, this.config.getSpaces() * 2, 0));
+		BlockBounds boardBounds = new BlockBounds(boardOrigin, boardOrigin.add(this.config.getChances() + 1, spaces * 2, 0));
 		for (BlockPos pos : boardBounds) {
 			template.setBlockState(pos, mapConfig.getBoardProvider().getBlockState(random, pos));
 		}
 
-		BlockPos codeOrigin = boardOrigin.add(1, this.config.getSpaces() * 2 - 1, 0);
+		BlockPos codeOrigin = boardOrigin.add(1, spaces * 2 - 1, 0);
 		template.setBlockState(codeOrigin, Blocks.EMERALD_BLOCK.getDefaultState());
 
 		// Floor

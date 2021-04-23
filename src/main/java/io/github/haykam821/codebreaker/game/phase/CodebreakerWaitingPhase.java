@@ -1,6 +1,9 @@
 package io.github.haykam821.codebreaker.game.phase;
 
+import java.util.Random;
+
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
+import io.github.haykam821.codebreaker.game.code.Code;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMap;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMapBuilder;
 import net.minecraft.entity.damage.DamageSource;
@@ -42,26 +45,33 @@ public class CodebreakerWaitingPhase {
 	private final GameSpace gameSpace;
 	private final CodebreakerMap map;
 	private final CodebreakerConfig config;
+	private final Code correctCode;
 	private FloatingText guideText;
 
-	public CodebreakerWaitingPhase(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config) {
+	public CodebreakerWaitingPhase(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config, Code correctCode) {
 		this.gameSpace = gameSpace;
 		this.map = map;
 		this.config = config;
+		this.correctCode = correctCode;
 	}
 
 	public static GameOpenProcedure open(GameOpenContext<CodebreakerConfig> context) {
-		CodebreakerMapBuilder mapBuilder = new CodebreakerMapBuilder(context.getConfig());
-		CodebreakerMap map = mapBuilder.create();
+		CodebreakerConfig config = context.getConfig();
+		
+		Random random = new Random();
+		Code correctCode = config.getCodeGenerator().generate(new Random());
+
+		CodebreakerMapBuilder mapBuilder = new CodebreakerMapBuilder(config);
+		CodebreakerMap map = mapBuilder.create(random, correctCode);
 
 		BubbleWorldConfig worldConfig = new BubbleWorldConfig()
 			.setGenerator(map.createGenerator(context.getServer()))
 			.setDefaultGameMode(GameMode.ADVENTURE);
 
 		return context.createOpenProcedure(worldConfig, game -> {
-			CodebreakerWaitingPhase waiting = new CodebreakerWaitingPhase(game.getSpace(), map, context.getConfig());
+			CodebreakerWaitingPhase waiting = new CodebreakerWaitingPhase(game.getSpace(), map, config, correctCode);
 
-			GameWaitingLobby.applyTo(game, context.getConfig().getPlayerConfig());
+			GameWaitingLobby.applyTo(game, config.getPlayerConfig());
 			CodebreakerActivePhase.setRules(game);
 
 			// Listeners
@@ -87,7 +97,7 @@ public class CodebreakerWaitingPhase {
 			return StartResult.NOT_ENOUGH_PLAYERS;
 		}
 
-		CodebreakerActivePhase.open(this.gameSpace, this.map, this.config, this.guideText);
+		CodebreakerActivePhase.open(this.gameSpace, this.map, this.config, this.guideText, this.correctCode);
 		return StartResult.OK;
 	}
 

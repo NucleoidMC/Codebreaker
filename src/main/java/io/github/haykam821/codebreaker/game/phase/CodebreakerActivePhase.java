@@ -51,14 +51,14 @@ public class CodebreakerActivePhase {
 	private TurnManager turnManager;
 	private int ticks = 0;
 
-	public CodebreakerActivePhase(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config, FloatingText guideText, List<ServerPlayerEntity> players) {
+	public CodebreakerActivePhase(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config, FloatingText guideText, List<ServerPlayerEntity> players, Code correctCode) {
 		this.gameSpace = gameSpace;
 		this.world = gameSpace.getWorld();
 		this.map = map;
 		this.config = config;
 		this.guideText = guideText;
 		this.players = players;
-		this.correctCode = Code.createRandom(config.getSpaces(), gameSpace.getWorld().getRandom());
+		this.correctCode = correctCode;
 	}
 
 	public static void setRules(GameLogic game) {
@@ -70,8 +70,8 @@ public class CodebreakerActivePhase {
 		game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
 	}
 
-	public static void open(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config, FloatingText guide) {
-		CodebreakerActivePhase phase = new CodebreakerActivePhase(gameSpace, map, config, guide, Lists.newArrayList(gameSpace.getPlayers()));
+	public static void open(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config, FloatingText guide, Code correctCode) {
+		CodebreakerActivePhase phase = new CodebreakerActivePhase(gameSpace, map, config, guide, Lists.newArrayList(gameSpace.getPlayers()), correctCode);
 
 		gameSpace.openGame(game -> {
 			CodebreakerActivePhase.setRules(game);
@@ -152,7 +152,7 @@ public class CodebreakerActivePhase {
 	}
 
 	private void createQueuedCode() {
-		this.queuedCode = new Code(this.config.getSpaces());
+		this.queuedCode = new Code(this.correctCode.getLength());
 	}
 
 	private void eraseQueuedCode(ServerPlayerEntity player) {
