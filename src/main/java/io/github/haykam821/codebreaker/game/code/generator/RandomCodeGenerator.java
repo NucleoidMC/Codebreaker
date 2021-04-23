@@ -7,7 +7,7 @@ import java.util.Random;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import io.github.haykam821.codebreaker.Main;
+import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import net.minecraft.block.Block;
 
@@ -24,14 +24,15 @@ public class RandomCodeGenerator implements CodeGenerator {
 		this.spaces = spaces;
 	}
 
-	public Code generate(Random random) {
+	public Code generate(Random random, CodebreakerConfig config) {
 		Code code = new Code(this.spaces);
+		List<Block> allPegs = config.getCodePegs().values();
 
-		List<Block> pegs = new ArrayList<>(Main.CODE_PEGS.values());
+		List<Block> pegs = new ArrayList<>(allPegs);
 		for (int index = 0; index < this.spaces; index++) {
 			// Refill peg choices if empty
 			if (pegs.size() == 0) {
-				pegs = new ArrayList<>(Main.CODE_PEGS.values());
+				pegs = new ArrayList<>(allPegs);
 			}
 
 			int pegIndex = random.nextInt(pegs.size());

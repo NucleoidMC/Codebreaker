@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-import io.github.haykam821.codebreaker.Main;
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import io.github.haykam821.codebreaker.game.code.ComparedCode;
@@ -173,7 +172,7 @@ public class CodebreakerActivePhase {
 		if (!this.players.contains(player)) return ActionResult.FAIL;
 
 		BlockState state = player.getEntityWorld().getBlockState(hitResult.getBlockPos());
-		if (!state.isIn(Main.CODE_PEGS) && !state.isOf(Blocks.BEDROCK)) return ActionResult.FAIL;
+		if (!state.isIn(this.config.getCodePegs()) && !state.isOf(Blocks.BEDROCK)) return ActionResult.FAIL;
 
 		if (this.useCodeControl(player, state)) {
 			// Swing hand and notify player

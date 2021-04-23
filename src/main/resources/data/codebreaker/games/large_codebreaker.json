@@ -6,6 +6,7 @@
 		"type": "codebreaker:random",
 		"spaces": 6
 	},
+	"code_pegs": "codebreaker:code_pegs",
 	"players": {
 		"min": 1,
 		"max": 4,

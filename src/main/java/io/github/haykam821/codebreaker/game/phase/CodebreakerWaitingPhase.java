@@ -56,10 +56,10 @@ public class CodebreakerWaitingPhase {
 	}
 
 	public static GameOpenProcedure open(GameOpenContext<CodebreakerConfig> context) {
-		CodebreakerConfig config = context.getConfig();
-		
 		Random random = new Random();
-		Code correctCode = config.getCodeGenerator().generate(new Random());
+		CodebreakerConfig config = context.getConfig();
+
+		Code correctCode = config.getCodeGenerator().generate(random, config);
 
 		CodebreakerMapBuilder mapBuilder = new CodebreakerMapBuilder(config);
 		CodebreakerMap map = mapBuilder.create(random, correctCode);
