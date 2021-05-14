@@ -59,7 +59,7 @@ public class CodebreakerWaitingPhase {
 		Random random = new Random();
 		CodebreakerConfig config = context.getConfig();
 
-		Code correctCode = config.getCodeGenerator().generate(random, config);
+		Code correctCode = config.getCodeProvider().generate(random, config);
 
 		CodebreakerMapBuilder mapBuilder = new CodebreakerMapBuilder(config);
 		CodebreakerMap map = mapBuilder.create(random, correctCode);

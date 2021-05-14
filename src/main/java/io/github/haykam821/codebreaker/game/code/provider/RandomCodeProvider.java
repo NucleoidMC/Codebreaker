@@ -1,4 +1,4 @@
-package io.github.haykam821.codebreaker.game.code.generator;
+package io.github.haykam821.codebreaker.game.code.provider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,16 +11,16 @@ import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import net.minecraft.block.Block;
 
-public class RandomCodeGenerator implements CodeGenerator {
-	public static final Codec<RandomCodeGenerator> CODEC = RecordCodecBuilder.create(instance -> {
+public class RandomCodeProvider implements CodeProvider {
+	public static final Codec<RandomCodeProvider> CODEC = RecordCodecBuilder.create(instance -> {
 		return instance.group(
-			Codec.INT.fieldOf("spaces").forGetter(generator -> generator.spaces)
-		).apply(instance, RandomCodeGenerator::new);
+			Codec.INT.fieldOf("spaces").forGetter(provider -> provider.spaces)
+		).apply(instance, RandomCodeProvider::new);
 	});
 
 	private final int spaces;
 
-	public RandomCodeGenerator(int spaces) {
+	public RandomCodeProvider(int spaces) {
 		this.spaces = spaces;
 	}
 
@@ -44,12 +44,12 @@ public class RandomCodeGenerator implements CodeGenerator {
 	}
 
 	@Override
-	public Codec<RandomCodeGenerator> getCodec() {
+	public Codec<RandomCodeProvider> getCodec() {
 		return CODEC;
 	}
 
 	@Override
 	public String toString() {
-		return "RandomCodeGenerator{spaces=" + this.spaces + "}";
+		return "RandomCodeProvider{spaces=" + this.spaces + "}";
 	}
 }

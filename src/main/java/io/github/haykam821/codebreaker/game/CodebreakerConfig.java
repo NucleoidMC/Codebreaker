@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import io.github.haykam821.codebreaker.Main;
-import io.github.haykam821.codebreaker.game.code.generator.CodeGenerator;
+import io.github.haykam821.codebreaker.game.code.provider.CodeProvider;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMapConfig;
 import io.github.haykam821.codebreaker.game.phase.CodebreakerActivePhase;
 import io.github.haykam821.codebreaker.game.turn.CyclicTurnManager;
@@ -22,7 +22,7 @@ public class CodebreakerConfig {
 		return instance.group(
 			PlayerConfig.CODEC.fieldOf("players").forGetter(CodebreakerConfig::getPlayerConfig),
 			CodebreakerMapConfig.CODEC.optionalFieldOf("map", CodebreakerMapConfig.DEFAULT).forGetter(CodebreakerConfig::getMapConfig),
-			CodeGenerator.TYPE_CODEC.fieldOf("code_generator").forGetter(CodebreakerConfig::getCodeGenerator),
+			CodeProvider.TYPE_CODEC.fieldOf("code_provider").forGetter(CodebreakerConfig::getCodeProvider),
 			Identifier.CODEC.fieldOf("code_pegs").forGetter(config -> config.codePegs),
 			Codec.INT.optionalFieldOf("guide_ticks", -1).forGetter(CodebreakerConfig::getGuideTicks),
 			Codec.INT.fieldOf("chances").forGetter(CodebreakerConfig::getChances),
@@ -32,16 +32,16 @@ public class CodebreakerConfig {
 
 	private final PlayerConfig playerConfig;
 	private final CodebreakerMapConfig mapConfig;
-	private final CodeGenerator codeGenerator;
+	private final CodeProvider codeProvider;
 	private final Identifier codePegs;
 	private final int guideTicks;
 	private final int chances;
 	private final boolean turns;
 
-	public CodebreakerConfig(PlayerConfig playerConfig, CodebreakerMapConfig mapConfig, CodeGenerator codeGenerator, Identifier codePegs, int guideTicks, int chances, boolean turns) {
+	public CodebreakerConfig(PlayerConfig playerConfig, CodebreakerMapConfig mapConfig, CodeProvider codeProvider, Identifier codePegs, int guideTicks, int chances, boolean turns) {
 		this.playerConfig = playerConfig;
 		this.mapConfig = mapConfig;
-		this.codeGenerator = codeGenerator;
+		this.codeProvider = codeProvider;
 		this.codePegs = codePegs;
 		this.guideTicks = guideTicks;
 		this.chances = chances;
@@ -56,8 +56,8 @@ public class CodebreakerConfig {
 		return this.mapConfig;
 	}
 
-	public CodeGenerator getCodeGenerator() {
-		return this.codeGenerator;
+	public CodeProvider getCodeProvider() {
+		return this.codeProvider;
 	}
 
 	public Tag<Block> getCodePegs() {

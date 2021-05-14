@@ -1,8 +1,8 @@
 package io.github.haykam821.codebreaker;
 
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
-import io.github.haykam821.codebreaker.game.code.generator.CodeGenerator;
-import io.github.haykam821.codebreaker.game.code.generator.RandomCodeGenerator;
+import io.github.haykam821.codebreaker.game.code.provider.CodeProvider;
+import io.github.haykam821.codebreaker.game.code.provider.RandomCodeProvider;
 import io.github.haykam821.codebreaker.game.phase.CodebreakerWaitingPhase;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.tag.TagRegistry;
@@ -24,6 +24,6 @@ public class Main implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		CodeGenerator.REGISTRY.register(RANDOM_ID, RandomCodeGenerator.CODEC);
+		CodeProvider.REGISTRY.register(RANDOM_ID, RandomCodeProvider.CODEC);
 	}
 }
