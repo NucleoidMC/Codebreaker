@@ -1,4 +1,6 @@
 {
+	"game.codebreaker.large_codebreaker": "Large Codebreaker",
+	"game.codebreaker.standard_codebreaker": "Codebreaker",
 	"gameType.codebreaker.codebreaker": "Codebreaker",
 	"text.codebreaker.guide.guess_the_code": "Guess the hidden code by selecting colors!",
 	"text.codebreaker.guide.guessing_gives_results": "A failed guess will show hits, blows, and misses.",

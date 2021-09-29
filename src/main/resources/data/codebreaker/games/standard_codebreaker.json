@@ -1,6 +1,5 @@
 {
 	"type": "codebreaker:codebreaker",
-	"name": "Codebreaker",
 	"chances": 8,
 	"code_provider": {
 		"type": "codebreaker:random",

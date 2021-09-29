@@ -2,34 +2,33 @@ package io.github.haykam821.codebreaker.game.phase;
 
 import java.util.Random;
 
+import eu.pb4.holograms.api.Holograms;
+import eu.pb4.holograms.api.holograms.AbstractHologram;
+import eu.pb4.holograms.api.holograms.AbstractHologram.VerticalAlign;
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMap;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMapBuilder;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
-import xyz.nucleoid.fantasy.BubbleWorldConfig;
-import xyz.nucleoid.plasmid.entity.FloatingText;
-import xyz.nucleoid.plasmid.entity.FloatingText.VerticalAlign;
+import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.plasmid.game.GameOpenContext;
 import xyz.nucleoid.plasmid.game.GameOpenProcedure;
+import xyz.nucleoid.plasmid.game.GameResult;
 import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.GameWaitingLobby;
-import xyz.nucleoid.plasmid.game.StartResult;
-import xyz.nucleoid.plasmid.game.config.PlayerConfig;
-import xyz.nucleoid.plasmid.game.event.GameOpenListener;
-import xyz.nucleoid.plasmid.game.event.GameTickListener;
-import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
-import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
-import xyz.nucleoid.plasmid.game.event.RequestStartListener;
-import xyz.nucleoid.plasmid.game.player.JoinResult;
+import xyz.nucleoid.plasmid.game.common.GameWaitingLobby;
+import xyz.nucleoid.plasmid.game.event.GameActivityEvents;
+import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
+import xyz.nucleoid.plasmid.game.player.PlayerOffer;
+import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
+import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
 public class CodebreakerWaitingPhase {
 	private static final Formatting GUIDE_FORMATTING = Formatting.GOLD;
@@ -43,13 +42,15 @@ public class CodebreakerWaitingPhase {
 	};
 
 	private final GameSpace gameSpace;
+	private final ServerWorld world;
 	private final CodebreakerMap map;
 	private final CodebreakerConfig config;
 	private final Code correctCode;
-	private FloatingText guideText;
+	private AbstractHologram guideText;
 
-	public CodebreakerWaitingPhase(GameSpace gameSpace, CodebreakerMap map, CodebreakerConfig config, Code correctCode) {
+	public CodebreakerWaitingPhase(GameSpace gameSpace, ServerWorld world, CodebreakerMap map, CodebreakerConfig config, Code correctCode) {
 		this.gameSpace = gameSpace;
+		this.world = world;
 		this.map = map;
 		this.config = config;
 		this.correctCode = correctCode;
@@ -57,72 +58,67 @@ public class CodebreakerWaitingPhase {
 
 	public static GameOpenProcedure open(GameOpenContext<CodebreakerConfig> context) {
 		Random random = new Random();
-		CodebreakerConfig config = context.getConfig();
+		CodebreakerConfig config = context.config();
 
 		Code correctCode = config.getCodeProvider().generate(random, config);
 
 		CodebreakerMapBuilder mapBuilder = new CodebreakerMapBuilder(config);
 		CodebreakerMap map = mapBuilder.create(random, correctCode);
 
-		BubbleWorldConfig worldConfig = new BubbleWorldConfig()
-			.setGenerator(map.createGenerator(context.getServer()))
-			.setDefaultGameMode(GameMode.ADVENTURE);
+		RuntimeWorldConfig worldConfig = new RuntimeWorldConfig()
+			.setGenerator(map.createGenerator(context.server()));
 
-		return context.createOpenProcedure(worldConfig, game -> {
-			CodebreakerWaitingPhase waiting = new CodebreakerWaitingPhase(game.getSpace(), map, config, correctCode);
+		return context.openWithWorld(worldConfig, (activity, world) -> {
+			CodebreakerWaitingPhase waiting = new CodebreakerWaitingPhase(activity.getGameSpace(), world, map, config, correctCode);
 
-			GameWaitingLobby.applyTo(game, config.getPlayerConfig());
-			CodebreakerActivePhase.setRules(game);
+			GameWaitingLobby.addTo(activity, config.getPlayerConfig());
+			CodebreakerActivePhase.setRules(activity);
 
 			// Listeners
-			game.on(GameTickListener.EVENT, waiting::tick);
-			game.on(GameOpenListener.EVENT, waiting::open);
-			game.on(PlayerAddListener.EVENT, waiting::addPlayer);
-			game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
-			game.on(RequestStartListener.EVENT, waiting::requestStart);
+			activity.listen(GameActivityEvents.TICK, waiting::tick);
+			activity.listen(GameActivityEvents.ENABLE, waiting::open);
+			activity.listen(GamePlayerEvents.ADD, waiting::addPlayer);
+			activity.listen(PlayerDeathEvent.EVENT, waiting::onPlayerDeath);
+			activity.listen(GameActivityEvents.REQUEST_START, waiting::requestStart);
+			activity.listen(GamePlayerEvents.OFFER, waiting::offerPlayer);
 		});
 	}
 
-	private boolean isFull() {
-		return this.gameSpace.getPlayerCount() >= this.config.getPlayerConfig().getMaxPlayers();
+	public PlayerOfferResult offerPlayer(PlayerOffer offer) {
+		return offer.accept(this.world, this.map.getSpawnPos()).and(() -> {
+			offer.player().changeGameMode(GameMode.ADVENTURE);
+		});
 	}
 
-	public JoinResult offerPlayer(ServerPlayerEntity player) {
-		return this.isFull() ? JoinResult.gameFull() : JoinResult.ok();
-	}
-
-	public StartResult requestStart() {
-		PlayerConfig playerConfig = this.config.getPlayerConfig();
-		if (this.gameSpace.getPlayerCount() < playerConfig.getMinPlayers()) {
-			return StartResult.NOT_ENOUGH_PLAYERS;
-		}
-
-		CodebreakerActivePhase.open(this.gameSpace, this.map, this.config, this.guideText, this.correctCode);
-		return StartResult.OK;
+	public GameResult requestStart() {
+		CodebreakerActivePhase.open(this.gameSpace, this.world, this.map, this.config, this.guideText, this.correctCode);
+		return GameResult.ok();
 	}
 
 	public void addPlayer(ServerPlayerEntity player) {
-		CodebreakerActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
+		CodebreakerActivePhase.spawn(this.world, this.map, player);
 	}
 
 	public ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
-		CodebreakerActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
+		CodebreakerActivePhase.spawn(this.world, this.map, player);
 		return ActionResult.SUCCESS;
 	}
 
 	public void tick() {
 		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
 			if (this.map.isBelowPlatform(player)) {
-				CodebreakerActivePhase.spawn(this.gameSpace.getWorld(), this.map, player);
+				CodebreakerActivePhase.spawn(this.world, this.map, player);
 			}
 		}
 	}
 
 	private void open() {
 		// Spawn guide text
-		Vec3d center = new Vec3d(this.map.getBounds().getCenter().getX(), this.map.getBounds().getMin().getY() + 2.8, this.map.getBounds().getMax().getZ());
-		this.gameSpace.getWorld().getChunk(new BlockPos(center));
+		Vec3d center = new Vec3d(this.map.getBounds().center().getX(), this.map.getBounds().min().getY() + 2.8, this.map.getBounds().max().getZ());
 
-		this.guideText = FloatingText.spawn(this.gameSpace.getWorld(), center, GUIDE_LINES, VerticalAlign.CENTER);
+		this.guideText = Holograms.create(this.world, center, GUIDE_LINES);
+		this.guideText.setAlignment(VerticalAlign.CENTER);
+
+		this.guideText.show();
 	}
 }

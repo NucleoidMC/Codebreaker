@@ -7,8 +7,8 @@ import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
-import xyz.nucleoid.plasmid.map.template.MapTemplate;
-import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.map_templates.BlockBounds;
+import xyz.nucleoid.map_templates.MapTemplate;
 
 public class CodebreakerMapBuilder {
 	private static final BlockPos ORIGIN = new BlockPos(0, 64, 0);
@@ -28,7 +28,7 @@ public class CodebreakerMapBuilder {
 
 		// Board
 		BlockPos boardOrigin = ORIGIN.add(1, 1, 1);
-		BlockBounds boardBounds = new BlockBounds(boardOrigin, boardOrigin.add(this.config.getChances() + 1, spaces * 2, 0));
+		BlockBounds boardBounds = BlockBounds.of(boardOrigin, boardOrigin.add(this.config.getChances() + 1, spaces * 2, 0));
 		for (BlockPos pos : boardBounds) {
 			template.setBlockState(pos, mapConfig.getBoardProvider().getBlockState(random, pos));
 		}
@@ -38,15 +38,15 @@ public class CodebreakerMapBuilder {
 
 		// Floor
 		BlockPos floorOrigin = ORIGIN.add(0, 0, 0);
-		BlockBounds floorBounds = new BlockBounds(floorOrigin, floorOrigin.add(this.config.getChances() + 3, 0, FLOOR_WIDTH - 1));
+		BlockBounds floorBounds = BlockBounds.of(floorOrigin, floorOrigin.add(this.config.getChances() + 3, 0, FLOOR_WIDTH - 1));
 		for (BlockPos pos : floorBounds) {
 			template.setBlockState(pos, mapConfig.getFloorProvider().getBlockState(random, pos));
 		}
 
 		// Code controls
 		int codeControls = Main.CODE_PEGS.values().size();
-		BlockPos codeControlOrigin = ORIGIN.add(floorBounds.getSize().getX() / 2 - codeControls / 2, 0, 6);
-		BlockBounds codeControlBounds = new BlockBounds(codeControlOrigin, codeControlOrigin.add(codeControls, 0, 0));
+		BlockPos codeControlOrigin = ORIGIN.add(floorBounds.size().getX() / 2 - codeControls / 2, 0, 6);
+		BlockBounds codeControlBounds = BlockBounds.of(codeControlOrigin, codeControlOrigin.add(codeControls, 0, 0));
 		int codeControlIndex = 0;
 		for (BlockPos pos : codeControlBounds) {
 			if (codeControlIndex < codeControls) {

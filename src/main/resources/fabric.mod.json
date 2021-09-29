@@ -20,6 +20,6 @@
 	"icon": "assets/codebreaker/icon.png",
 	"depends": {
 		"fabricloader": ">=0.4.0",
-		"plasmid": ">=0.4.21"
+		"plasmid": ">=0.5.0"
 	}
 }

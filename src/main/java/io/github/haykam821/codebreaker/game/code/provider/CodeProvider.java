@@ -11,7 +11,7 @@ import io.github.haykam821.codebreaker.game.code.Code;
 import xyz.nucleoid.plasmid.registry.TinyRegistry;
 
 public interface CodeProvider {
-	public static final TinyRegistry<Codec<? extends CodeProvider>> REGISTRY = TinyRegistry.newStable();
+	public static final TinyRegistry<Codec<? extends CodeProvider>> REGISTRY = TinyRegistry.create();
 	public static final MapCodec<CodeProvider> TYPE_CODEC = REGISTRY.dispatchMap(CodeProvider::getCodec, Function.identity());
 	
 	public Code generate(Random random, CodebreakerConfig config);
