@@ -29,6 +29,8 @@ import xyz.nucleoid.plasmid.game.GameCloseReason;
 import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.event.GameActivityEvents;
 import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
+import xyz.nucleoid.plasmid.game.player.PlayerOffer;
+import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
 import xyz.nucleoid.plasmid.game.rule.GameRuleType;
 import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
@@ -75,7 +77,7 @@ public class CodebreakerActivePhase {
 			// Listeners
 			activity.listen(GameActivityEvents.ENABLE, phase::enable);
 			activity.listen(GameActivityEvents.TICK, phase::tick);
-			activity.listen(GamePlayerEvents.ADD, phase::addPlayer);
+			activity.listen(GamePlayerEvents.OFFER, phase::offerPlayer);
 			activity.listen(PlayerDamageEvent.EVENT, phase::onPlayerDamage);
 			activity.listen(PlayerDeathEvent.EVENT, phase::onPlayerDeath);
 			activity.listen(GamePlayerEvents.REMOVE, phase::onPlayerRemove);
@@ -121,9 +123,11 @@ public class CodebreakerActivePhase {
 		player.changeGameMode(GameMode.SPECTATOR);
 	}
 
-	private void addPlayer(ServerPlayerEntity player) {
-		this.setSpectator(player);
-		CodebreakerActivePhase.spawn(this.world, this.map, player);
+	private PlayerOfferResult offerPlayer(PlayerOffer offer) {
+		return offer.accept(this.world, this.map.getSpawnPos()).and(() -> {
+			offer.player().setYaw(180);
+			this.setSpectator(offer.player());
+		});
 	}
 
 	private void submitCode(ServerPlayerEntity player) {
