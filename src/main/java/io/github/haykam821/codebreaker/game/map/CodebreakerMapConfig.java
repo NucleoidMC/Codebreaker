@@ -5,11 +5,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.block.Blocks;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
-import net.minecraft.world.gen.stateprovider.SimpleBlockStateProvider;
 
 public class CodebreakerMapConfig {
-	private static final BlockStateProvider DEFAULT_BOARD_PROVIDER = new SimpleBlockStateProvider(Blocks.WHITE_CONCRETE.getDefaultState());
-	private static final BlockStateProvider DEFAULT_FLOOR_PROVIDER = new SimpleBlockStateProvider(Blocks.GRAY_CONCRETE.getDefaultState());
+	private static final BlockStateProvider DEFAULT_BOARD_PROVIDER = BlockStateProvider.of(Blocks.WHITE_CONCRETE);
+	private static final BlockStateProvider DEFAULT_FLOOR_PROVIDER = BlockStateProvider.of(Blocks.GRAY_CONCRETE);
 	public static final CodebreakerMapConfig DEFAULT = new CodebreakerMapConfig(DEFAULT_BOARD_PROVIDER, DEFAULT_FLOOR_PROVIDER);
 
 	public static final Codec<CodebreakerMapConfig> CODEC = RecordCodecBuilder.create(instance -> {
