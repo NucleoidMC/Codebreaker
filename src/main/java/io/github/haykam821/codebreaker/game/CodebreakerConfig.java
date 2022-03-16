@@ -3,7 +3,6 @@ package io.github.haykam821.codebreaker.game;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import io.github.haykam821.codebreaker.Main;
 import io.github.haykam821.codebreaker.game.code.provider.CodeProvider;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMapConfig;
 import io.github.haykam821.codebreaker.game.phase.CodebreakerActivePhase;
@@ -12,9 +11,9 @@ import io.github.haykam821.codebreaker.game.turn.NoTurnManager;
 import io.github.haykam821.codebreaker.game.turn.TurnManager;
 import net.minecraft.block.Block;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.tag.BlockTags;
-import net.minecraft.tag.Tag;
-import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryCodecs;
+import net.minecraft.util.registry.RegistryEntryList;
 import xyz.nucleoid.plasmid.game.common.config.PlayerConfig;
 
 public class CodebreakerConfig {
@@ -23,7 +22,7 @@ public class CodebreakerConfig {
 			PlayerConfig.CODEC.fieldOf("players").forGetter(CodebreakerConfig::getPlayerConfig),
 			CodebreakerMapConfig.CODEC.optionalFieldOf("map", CodebreakerMapConfig.DEFAULT).forGetter(CodebreakerConfig::getMapConfig),
 			CodeProvider.TYPE_CODEC.fieldOf("code_provider").forGetter(CodebreakerConfig::getCodeProvider),
-			Identifier.CODEC.fieldOf("code_pegs").forGetter(config -> config.codePegs),
+			RegistryCodecs.entryList(Registry.BLOCK_KEY).fieldOf("code_pegs").forGetter(config -> config.codePegs),
 			Codec.INT.optionalFieldOf("guide_ticks", -1).forGetter(CodebreakerConfig::getGuideTicks),
 			Codec.INT.fieldOf("chances").forGetter(CodebreakerConfig::getChances),
 			Codec.BOOL.optionalFieldOf("turns", true).forGetter(config -> config.turns)
@@ -33,12 +32,12 @@ public class CodebreakerConfig {
 	private final PlayerConfig playerConfig;
 	private final CodebreakerMapConfig mapConfig;
 	private final CodeProvider codeProvider;
-	private final Identifier codePegs;
+	private final RegistryEntryList<Block> codePegs;
 	private final int guideTicks;
 	private final int chances;
 	private final boolean turns;
 
-	public CodebreakerConfig(PlayerConfig playerConfig, CodebreakerMapConfig mapConfig, CodeProvider codeProvider, Identifier codePegs, int guideTicks, int chances, boolean turns) {
+	public CodebreakerConfig(PlayerConfig playerConfig, CodebreakerMapConfig mapConfig, CodeProvider codeProvider, RegistryEntryList<Block> codePegs, int guideTicks, int chances, boolean turns) {
 		this.playerConfig = playerConfig;
 		this.mapConfig = mapConfig;
 		this.codeProvider = codeProvider;
@@ -60,9 +59,8 @@ public class CodebreakerConfig {
 		return this.codeProvider;
 	}
 
-	public Tag<Block> getCodePegs() {
-		Tag<Block> tag = BlockTags.getTagGroup().getTag(this.codePegs);
-		return tag == null ? Main.CODE_PEGS : tag;
+	public RegistryEntryList<Block> getCodePegs() {
+		return this.codePegs;
 	}
 
 	public int getGuideTicks() {

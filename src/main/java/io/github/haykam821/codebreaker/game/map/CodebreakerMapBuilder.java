@@ -2,11 +2,12 @@ package io.github.haykam821.codebreaker.game.map;
 
 import java.util.Random;
 
-import io.github.haykam821.codebreaker.Main;
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
+import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.RegistryEntryList;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.map_templates.MapTemplate;
 
@@ -20,7 +21,7 @@ public class CodebreakerMapBuilder {
 		this.config = config;
 	}
 
-	public CodebreakerMap create(Random random, Code correctCode) {
+	public CodebreakerMap create(Random random, Code correctCode, RegistryEntryList<Block> codePegs) {
 		MapTemplate template = MapTemplate.createEmpty();
 
 		CodebreakerMapConfig mapConfig = this.config.getMapConfig();
@@ -44,13 +45,13 @@ public class CodebreakerMapBuilder {
 		}
 
 		// Code controls
-		int codeControls = Main.CODE_PEGS.values().size();
+		int codeControls = codePegs.size();
 		BlockPos codeControlOrigin = ORIGIN.add(floorBounds.size().getX() / 2 - codeControls / 2, 0, 6);
 		BlockBounds codeControlBounds = BlockBounds.of(codeControlOrigin, codeControlOrigin.add(codeControls, 0, 0));
 		int codeControlIndex = 0;
 		for (BlockPos pos : codeControlBounds) {
 			if (codeControlIndex < codeControls) {
-				template.setBlockState(pos, Main.CODE_PEGS.values().get(codeControlIndex).getDefaultState());
+				template.setBlockState(pos, codePegs.get(codeControlIndex).value().getDefaultState());
 			} else {
 				template.setBlockState(pos, Blocks.BEDROCK.getDefaultState());
 			}
