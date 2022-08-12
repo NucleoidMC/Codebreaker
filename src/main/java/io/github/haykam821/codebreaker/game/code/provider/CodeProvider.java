@@ -1,6 +1,5 @@
 package io.github.haykam821.codebreaker.game.code.provider;
 
-import java.util.Random;
 import java.util.function.Function;
 
 import com.mojang.serialization.Codec;
@@ -8,6 +7,7 @@ import com.mojang.serialization.MapCodec;
 
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
+import net.minecraft.util.math.random.Random;
 import xyz.nucleoid.plasmid.registry.TinyRegistry;
 
 public interface CodeProvider {

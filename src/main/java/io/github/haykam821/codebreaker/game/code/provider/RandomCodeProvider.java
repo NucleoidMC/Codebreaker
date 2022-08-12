@@ -3,7 +3,6 @@ package io.github.haykam821.codebreaker.game.code.provider;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -11,6 +10,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import net.minecraft.block.Block;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.util.registry.RegistryEntryList;
 

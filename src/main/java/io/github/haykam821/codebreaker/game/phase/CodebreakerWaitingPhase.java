@@ -1,7 +1,5 @@
 package io.github.haykam821.codebreaker.game.phase;
 
-import java.util.Random;
-
 import eu.pb4.holograms.api.Holograms;
 import eu.pb4.holograms.api.holograms.AbstractHologram;
 import eu.pb4.holograms.api.holograms.AbstractHologram.VerticalAlign;
@@ -13,10 +11,10 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.plasmid.game.GameOpenContext;
@@ -33,12 +31,12 @@ import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 public class CodebreakerWaitingPhase {
 	private static final Formatting GUIDE_FORMATTING = Formatting.GOLD;
 	private static final Text[] GUIDE_LINES = {
-		new TranslatableText("gameType.codebreaker.codebreaker").formatted(GUIDE_FORMATTING).formatted(Formatting.BOLD),
-		new TranslatableText("text.codebreaker.guide.guess_the_code").formatted(GUIDE_FORMATTING),
-		new TranslatableText("text.codebreaker.guide.guessing_gives_results").formatted(GUIDE_FORMATTING),
-		new TranslatableText("text.codebreaker.guide.acacia_button_indicates_hit").formatted(GUIDE_FORMATTING),
-		new TranslatableText("text.codebreaker.guide.stone_button_indicates_blow").formatted(GUIDE_FORMATTING),
-		new TranslatableText("text.codebreaker.guide.birch_button_indicates_miss").formatted(GUIDE_FORMATTING),
+		Text.translatable("gameType.codebreaker.codebreaker").formatted(GUIDE_FORMATTING).formatted(Formatting.BOLD),
+		Text.translatable("text.codebreaker.guide.guess_the_code").formatted(GUIDE_FORMATTING),
+		Text.translatable("text.codebreaker.guide.guessing_gives_results").formatted(GUIDE_FORMATTING),
+		Text.translatable("text.codebreaker.guide.acacia_button_indicates_hit").formatted(GUIDE_FORMATTING),
+		Text.translatable("text.codebreaker.guide.stone_button_indicates_blow").formatted(GUIDE_FORMATTING),
+		Text.translatable("text.codebreaker.guide.birch_button_indicates_miss").formatted(GUIDE_FORMATTING),
 	};
 
 	private final GameSpace gameSpace;
@@ -57,7 +55,7 @@ public class CodebreakerWaitingPhase {
 	}
 
 	public static GameOpenProcedure open(GameOpenContext<CodebreakerConfig> context) {
-		Random random = new Random();
+		Random random = Random.createLocal();
 		CodebreakerConfig config = context.config();
 
 		Code correctCode = config.getCodeProvider().generate(random, config);
