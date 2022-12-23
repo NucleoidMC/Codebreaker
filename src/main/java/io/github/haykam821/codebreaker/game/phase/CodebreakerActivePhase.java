@@ -157,7 +157,7 @@ public class CodebreakerActivePhase {
 
 	private void eraseQueuedCode(ServerPlayerEntity player) {
 		this.createQueuedCode();
-		player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BIT, SoundCategory.BLOCKS, 1, 0.5f);
+		player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), SoundCategory.BLOCKS, 1, 0.5f);
 	}
 
 	private void queueCodePeg(ServerPlayerEntity player, BlockState state) {
@@ -165,7 +165,7 @@ public class CodebreakerActivePhase {
 			this.createQueuedCode();
 		}
 		this.queuedCode.setNext(state);
-		player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BIT, SoundCategory.BLOCKS, 1, 2);
+		player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), SoundCategory.BLOCKS, 1, 2);
 	}
 
 	private ActionResult onUseBlock(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {

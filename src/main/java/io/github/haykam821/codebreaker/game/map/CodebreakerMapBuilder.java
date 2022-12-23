@@ -4,9 +4,9 @@ import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
-import net.minecraft.util.registry.RegistryEntryList;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.map_templates.MapTemplate;
 
@@ -30,7 +30,7 @@ public class CodebreakerMapBuilder {
 		BlockPos boardOrigin = ORIGIN.add(1, 1, 1);
 		BlockBounds boardBounds = BlockBounds.of(boardOrigin, boardOrigin.add(this.config.getChances() + 1, spaces * 2, 0));
 		for (BlockPos pos : boardBounds) {
-			template.setBlockState(pos, mapConfig.getBoardProvider().getBlockState(random, pos));
+			template.setBlockState(pos, mapConfig.getBoardProvider().get(random, pos));
 		}
 
 		BlockPos codeOrigin = boardOrigin.add(1, spaces * 2 - 1, 0);
@@ -40,7 +40,7 @@ public class CodebreakerMapBuilder {
 		BlockPos floorOrigin = ORIGIN.add(0, 0, 0);
 		BlockBounds floorBounds = BlockBounds.of(floorOrigin, floorOrigin.add(this.config.getChances() + 3, 0, FLOOR_WIDTH - 1));
 		for (BlockPos pos : floorBounds) {
-			template.setBlockState(pos, mapConfig.getFloorProvider().getBlockState(random, pos));
+			template.setBlockState(pos, mapConfig.getFloorProvider().get(random, pos));
 		}
 
 		// Code controls
