@@ -1,12 +1,11 @@
 package io.github.haykam821.codebreaker.game.map;
 
-import java.util.Random;
-
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.registry.RegistryEntryList;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.map_templates.MapTemplate;

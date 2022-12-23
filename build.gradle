@@ -1,5 +1,5 @@
 plugins {
-	id "fabric-loom" version "0.11.32"
+	id "fabric-loom" version "0.12.56"
 	id "maven-publish"
 }
 
@@ -19,7 +19,6 @@ repositories {
 		name = "Nucleoid"
 		url = "https://maven.nucleoid.xyz/"
 	}
-	jcenter()
 }
 
 dependencies {
