@@ -51,7 +51,7 @@ public class Code {
 		BlockPos.Mutable pos = originPos.mutableCopy();
 		for (int index = 0; index < this.getLength(); index++) {
 			BlockState state = this.pegs[index];
-			world.setBlockState(pos, state == null ? mapConfig.getBoardProvider().getBlockState(world.getRandom(), pos) : state, 3);
+			world.setBlockState(pos, state == null ? mapConfig.getBoardProvider().get(world.getRandom(), pos) : state, 3);
 
 			pos.move(Direction.DOWN);
 		}

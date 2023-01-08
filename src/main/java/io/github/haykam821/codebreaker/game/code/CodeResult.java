@@ -1,9 +1,9 @@
 package io.github.haykam821.codebreaker.game.code;
 
-import net.minecraft.block.AbstractButtonBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.ButtonBlock;
 import net.minecraft.util.math.Direction;
 
 public enum CodeResult {
@@ -11,8 +11,8 @@ public enum CodeResult {
 	BLOW(Blocks.STONE_BUTTON);
 
 	public static final BlockState EMPTY = Blocks.BIRCH_BUTTON.getDefaultState()
-		.with(AbstractButtonBlock.FACING, Direction.SOUTH)
-		.with(AbstractButtonBlock.POWERED, true);
+		.with(ButtonBlock.FACING, Direction.SOUTH)
+		.with(ButtonBlock.POWERED, true);
 
 	private final BlockState state;
 
@@ -22,8 +22,8 @@ public enum CodeResult {
 
 	private CodeResult(Block block) {
 		this(block.getDefaultState()
-			.with(AbstractButtonBlock.FACING, Direction.SOUTH)
-			.with(AbstractButtonBlock.POWERED, true));
+			.with(ButtonBlock.FACING, Direction.SOUTH)
+			.with(ButtonBlock.POWERED, true));
 	}
 
 	public BlockState getState() {

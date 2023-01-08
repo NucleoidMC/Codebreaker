@@ -10,10 +10,10 @@ import io.github.haykam821.codebreaker.game.turn.CyclicTurnManager;
 import io.github.haykam821.codebreaker.game.turn.NoTurnManager;
 import io.github.haykam821.codebreaker.game.turn.TurnManager;
 import net.minecraft.block.Block;
+import net.minecraft.registry.RegistryCodecs;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryCodecs;
-import net.minecraft.util.registry.RegistryEntryList;
 import xyz.nucleoid.plasmid.game.common.config.PlayerConfig;
 
 public class CodebreakerConfig {
@@ -22,7 +22,7 @@ public class CodebreakerConfig {
 			PlayerConfig.CODEC.fieldOf("players").forGetter(CodebreakerConfig::getPlayerConfig),
 			CodebreakerMapConfig.CODEC.optionalFieldOf("map", CodebreakerMapConfig.DEFAULT).forGetter(CodebreakerConfig::getMapConfig),
 			CodeProvider.TYPE_CODEC.fieldOf("code_provider").forGetter(CodebreakerConfig::getCodeProvider),
-			RegistryCodecs.entryList(Registry.BLOCK_KEY).fieldOf("code_pegs").forGetter(config -> config.codePegs),
+			RegistryCodecs.entryList(RegistryKeys.BLOCK).fieldOf("code_pegs").forGetter(config -> config.codePegs),
 			Codec.INT.optionalFieldOf("guide_ticks", -1).forGetter(CodebreakerConfig::getGuideTicks),
 			Codec.INT.fieldOf("chances").forGetter(CodebreakerConfig::getChances),
 			Codec.BOOL.optionalFieldOf("turns", true).forGetter(config -> config.turns)

@@ -17,7 +17,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
@@ -115,7 +115,7 @@ public class CodebreakerActivePhase {
 	}
 
 	private void endGameWithWinner(ServerPlayerEntity player) {
-		this.gameSpace.getPlayers().sendMessage(new TranslatableText("text.codebreaker.win", player.getDisplayName(), this.queuedIndex + 1).formatted(Formatting.GOLD));
+		this.gameSpace.getPlayers().sendMessage(Text.translatable("text.codebreaker.win", player.getDisplayName(), this.queuedIndex + 1).formatted(Formatting.GOLD));
 		this.endGame();
 	}
 
@@ -138,7 +138,7 @@ public class CodebreakerActivePhase {
 			this.endGameWithWinner(player);
 			this.gameSpace.getPlayers().playSound(SoundEvents.ENTITY_FIREWORK_ROCKET_SHOOT, SoundCategory.BLOCKS, 1, 1);
 		} else if (this.queuedIndex + 1 >= this.config.getChances()) {
-			this.gameSpace.getPlayers().sendMessage(new TranslatableText("text.codebreaker.lose", this.queuedIndex + 1).formatted(Formatting.RED));
+			this.gameSpace.getPlayers().sendMessage(Text.translatable("text.codebreaker.lose", this.queuedIndex + 1).formatted(Formatting.RED));
 			this.gameSpace.getPlayers().playSound(SoundEvents.ENTITY_CREEPER_DEATH, SoundCategory.BLOCKS, 1, 1);
 
 			this.endGame();
@@ -157,7 +157,7 @@ public class CodebreakerActivePhase {
 
 	private void eraseQueuedCode(ServerPlayerEntity player) {
 		this.createQueuedCode();
-		player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BIT, SoundCategory.BLOCKS, 1, 0.5f);
+		player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), SoundCategory.BLOCKS, 1, 0.5f);
 	}
 
 	private void queueCodePeg(ServerPlayerEntity player, BlockState state) {
@@ -165,7 +165,7 @@ public class CodebreakerActivePhase {
 			this.createQueuedCode();
 		}
 		this.queuedCode.setNext(state);
-		player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BIT, SoundCategory.BLOCKS, 1, 2);
+		player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), SoundCategory.BLOCKS, 1, 2);
 	}
 
 	private ActionResult onUseBlock(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
