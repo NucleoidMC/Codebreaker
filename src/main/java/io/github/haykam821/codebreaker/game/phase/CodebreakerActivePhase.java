@@ -48,6 +48,7 @@ public class CodebreakerActivePhase {
 	private int queuedIndex = 0;
 	private TurnManager turnManager;
 	private int ticks = 0;
+	private int ticksUntilClose = -1;
 
 	public CodebreakerActivePhase(GameSpace gameSpace, ServerWorld world, CodebreakerMap map, CodebreakerConfig config, AbstractHologram guideText, List<ServerPlayerEntity> players, Code correctCode) {
 		this.gameSpace = gameSpace;
@@ -98,6 +99,15 @@ public class CodebreakerActivePhase {
 	}
 
 	private void tick() {
+		// Decrease ticks until game end to zero
+		if (this.isGameEnding()) {
+			if (this.ticksUntilClose == 0) {
+				this.gameSpace.close(GameCloseReason.FINISHED);
+			}
+
+			this.ticksUntilClose -= 1;
+		}
+
 		this.ticks += 1;
 		if (this.guideText != null && ticks == this.config.getGuideTicks()) {
 			this.guideText.hide();
@@ -111,12 +121,16 @@ public class CodebreakerActivePhase {
 	}
 
 	private void endGame() {
-		this.gameSpace.close(GameCloseReason.FINISHED);
+		this.ticksUntilClose = this.config.getTicksUntilClose().get(this.world.getRandom());
 	}
 
 	private void endGameWithWinner(ServerPlayerEntity player) {
 		this.gameSpace.getPlayers().sendMessage(Text.translatable("text.codebreaker.win", player.getDisplayName(), this.queuedIndex + 1).formatted(Formatting.GOLD));
 		this.endGame();
+	}
+
+	private boolean isGameEnding() {
+		return this.ticksUntilClose >= 0;
 	}
 
 	public void setSpectator(ServerPlayerEntity player) {
@@ -169,6 +183,7 @@ public class CodebreakerActivePhase {
 	}
 
 	private ActionResult onUseBlock(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
+		if (this.isGameEnding()) return ActionResult.FAIL;
 		if (hand != Hand.MAIN_HAND) return ActionResult.FAIL;
 		if (!this.players.contains(player)) return ActionResult.FAIL;
 
