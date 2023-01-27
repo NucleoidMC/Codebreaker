@@ -1,0 +1,15 @@
+{
+	"game.codebreaker.large_codebreaker": "Взломщик кода (расширенный)",
+	"game.codebreaker.standard_codebreaker": "Взломщик кода",
+	"gameType.codebreaker.codebreaker": "Взломщик кода",
+	"text.codebreaker.guide.guess_the_code": "Определите загаданный код, выбирая цвета!",
+	"text.codebreaker.guide.guessing_gives_results": "Неудачная попытка покажет количество совпадений.",
+	"text.codebreaker.guide.acacia_button_indicates_hit": "Акациевая кнопка указывает на полное совпадение: какой-то цвет угадан вплоть до позиции.",
+	"text.codebreaker.guide.stone_button_indicates_blow": "Каменная кнопка указывает на частичное совпадение: какой-то цвет угадан на неверной позиции.",
+	"text.codebreaker.guide.birch_button_indicates_miss": "Берёзовая кнопка указывает на несовпадение: какой-то цвет отсутствует в коде.",
+	"text.codebreaker.lose": "Никто не угадал код в течение %s раундов!",
+	"text.codebreaker.win": "%s угадал код спустя %s раундов.",
+	"text.codebreaker.other_turn": "Сейчас ходит %s.",
+	"text.codebreaker.next_turn": "Ходит %s.",
+	"text.codebreaker.no_turn": "Сейчас никто не ходит."
+}
