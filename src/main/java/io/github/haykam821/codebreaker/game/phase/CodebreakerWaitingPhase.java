@@ -1,13 +1,16 @@
 package io.github.haykam821.codebreaker.game.phase;
 
-import eu.pb4.holograms.api.Holograms;
-import eu.pb4.holograms.api.holograms.AbstractHologram;
-import eu.pb4.holograms.api.holograms.AbstractHologram.VerticalAlign;
+import eu.pb4.polymer.virtualentity.api.ElementHolder;
+import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
+import eu.pb4.polymer.virtualentity.api.attachment.HolderAttachment;
+import eu.pb4.polymer.virtualentity.api.elements.TextDisplayElement;
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMap;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMapBuilder;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.decoration.DisplayEntity.BillboardMode;
+import net.minecraft.screen.ScreenTexts;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -30,21 +33,18 @@ import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
 public class CodebreakerWaitingPhase {
 	private static final Formatting GUIDE_FORMATTING = Formatting.GOLD;
-	private static final Text[] GUIDE_LINES = {
-		Text.translatable("gameType.codebreaker.codebreaker").formatted(GUIDE_FORMATTING).formatted(Formatting.BOLD),
-		Text.translatable("text.codebreaker.guide.guess_the_code").formatted(GUIDE_FORMATTING),
-		Text.translatable("text.codebreaker.guide.guessing_gives_results").formatted(GUIDE_FORMATTING),
-		Text.translatable("text.codebreaker.guide.acacia_button_indicates_hit").formatted(GUIDE_FORMATTING),
-		Text.translatable("text.codebreaker.guide.stone_button_indicates_blow").formatted(GUIDE_FORMATTING),
-		Text.translatable("text.codebreaker.guide.birch_button_indicates_miss").formatted(GUIDE_FORMATTING),
-	};
+	private static final Text GUIDE_TEXT = Text.empty()
+		.append(Text.translatable("gameType.codebreaker.codebreaker").formatted(Formatting.BOLD))
+		.append(ScreenTexts.LINE_BREAK)
+		.append(Text.translatable("text.codebreaker.guide"))
+		.formatted(GUIDE_FORMATTING);
 
 	private final GameSpace gameSpace;
 	private final ServerWorld world;
 	private final CodebreakerMap map;
 	private final CodebreakerConfig config;
 	private final Code correctCode;
-	private AbstractHologram guideText;
+	private HolderAttachment guideText;
 
 	public CodebreakerWaitingPhase(GameSpace gameSpace, ServerWorld world, CodebreakerMap map, CodebreakerConfig config, Code correctCode) {
 		this.gameSpace = gameSpace;
@@ -111,12 +111,16 @@ public class CodebreakerWaitingPhase {
 	}
 
 	private void open() {
+		TextDisplayElement element = new TextDisplayElement(GUIDE_TEXT);
+
+		element.setBillboardMode(BillboardMode.CENTER);
+		element.setLineWidth(450);
+
+		ElementHolder holder = new ElementHolder();
+		holder.addElement(element);
+
 		// Spawn guide text
-		Vec3d center = new Vec3d(this.map.getBounds().center().getX(), this.map.getBounds().min().getY() + 2.8, this.map.getBounds().max().getZ());
-
-		this.guideText = Holograms.create(this.world, center, GUIDE_LINES);
-		this.guideText.setAlignment(VerticalAlign.CENTER);
-
-		this.guideText.show();
+		Vec3d center = new Vec3d(this.map.getBounds().center().getX(), this.map.getBounds().min().getY() + 2, this.map.getBounds().max().getZ());
+		this.guideText = ChunkAttachment.of(holder, world, center);
 	}
 }

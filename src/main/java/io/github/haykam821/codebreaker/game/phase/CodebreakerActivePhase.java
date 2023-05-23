@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-import eu.pb4.holograms.api.holograms.AbstractHologram;
+import eu.pb4.polymer.virtualentity.api.attachment.HolderAttachment;
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import io.github.haykam821.codebreaker.game.code.ComparedCode;
@@ -41,7 +41,7 @@ public class CodebreakerActivePhase {
 	private final ServerWorld world;
 	private final CodebreakerMap map;
 	private final CodebreakerConfig config;
-	private final AbstractHologram guideText;
+	private final HolderAttachment guideText;
 	private final List<ServerPlayerEntity> players;
 	private final Code correctCode;
 	private Code queuedCode;
@@ -50,7 +50,7 @@ public class CodebreakerActivePhase {
 	private int ticks = 0;
 	private int ticksUntilClose = -1;
 
-	public CodebreakerActivePhase(GameSpace gameSpace, ServerWorld world, CodebreakerMap map, CodebreakerConfig config, AbstractHologram guideText, List<ServerPlayerEntity> players, Code correctCode) {
+	public CodebreakerActivePhase(GameSpace gameSpace, ServerWorld world, CodebreakerMap map, CodebreakerConfig config, HolderAttachment guideText, List<ServerPlayerEntity> players, Code correctCode) {
 		this.gameSpace = gameSpace;
 		this.world = world;
 		this.map = map;
@@ -69,7 +69,7 @@ public class CodebreakerActivePhase {
 		activity.deny(GameRuleType.THROW_ITEMS);
 	}
 
-	public static void open(GameSpace gameSpace, ServerWorld world, CodebreakerMap map, CodebreakerConfig config, AbstractHologram guide, Code correctCode) {
+	public static void open(GameSpace gameSpace, ServerWorld world, CodebreakerMap map, CodebreakerConfig config, HolderAttachment guide, Code correctCode) {
 		CodebreakerActivePhase phase = new CodebreakerActivePhase(gameSpace, world, map, config, guide, Lists.newArrayList(gameSpace.getPlayers()), correctCode);
 
 		gameSpace.setActivity(activity -> {
@@ -110,7 +110,7 @@ public class CodebreakerActivePhase {
 
 		this.ticks += 1;
 		if (this.guideText != null && ticks == this.config.getGuideTicks()) {
-			this.guideText.hide();
+			this.guideText.destroy();
 		}
 
 		for (ServerPlayerEntity player : this.players) {
