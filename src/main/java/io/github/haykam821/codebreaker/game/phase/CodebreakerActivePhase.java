@@ -1,10 +1,13 @@
 package io.github.haykam821.codebreaker.game.phase;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.google.common.collect.Lists;
 
 import eu.pb4.polymer.virtualentity.api.attachment.HolderAttachment;
+import io.github.haykam821.codebreaker.Main;
+import io.github.haykam821.codebreaker.block.CodeControlBlockEntity;
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import io.github.haykam821.codebreaker.game.code.ComparedCode;
@@ -187,12 +190,16 @@ public class CodebreakerActivePhase {
 		if (hand != Hand.MAIN_HAND) return ActionResult.FAIL;
 		if (!this.players.contains(player)) return ActionResult.FAIL;
 
-		BlockState state = player.getEntityWorld().getBlockState(hitResult.getBlockPos());
-		if (!state.isIn(this.config.getCodePegs()) && !state.isOf(Blocks.BEDROCK)) return ActionResult.FAIL;
+		Optional<CodeControlBlockEntity> maybeBlockEntity = world.getBlockEntity(hitResult.getBlockPos(), Main.CODE_CONTROL_BLOCK_ENTITY);
 
-		if (this.useCodeControl(player, state)) {
-			// Swing hand and notify player
-			player.swingHand(hand, true);
+		if (maybeBlockEntity.isPresent()) {
+			BlockState state = maybeBlockEntity.get().getBlock();
+			if (!state.isIn(this.config.getCodePegs()) && !state.isOf(Blocks.BEDROCK)) return ActionResult.FAIL;
+
+			if (this.useCodeControl(player, state)) {
+				// Swing hand and notify player
+				player.swingHand(hand, true);
+			}
 		}
 
 		return ActionResult.FAIL;
