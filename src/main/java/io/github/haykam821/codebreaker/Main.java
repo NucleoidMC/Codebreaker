@@ -1,5 +1,6 @@
 package io.github.haykam821.codebreaker;
 
+import eu.pb4.polymer.core.api.block.PolymerBlockUtils;
 import eu.pb4.polymer.core.api.item.PolymerBlockItem;
 import io.github.haykam821.codebreaker.block.CodeControlBlock;
 import io.github.haykam821.codebreaker.block.CodeControlBlockEntity;
@@ -40,5 +41,7 @@ public class Main implements ModInitializer {
 		Registry.register(Registries.BLOCK, CODE_CONTROL_ID, CODE_CONTROL);
 		Registry.register(Registries.BLOCK_ENTITY_TYPE, CODE_CONTROL_ID, CODE_CONTROL_BLOCK_ENTITY);
 		Registry.register(Registries.ITEM, CODE_CONTROL_ID, CODE_CONTROL_ITEM);
+
+		PolymerBlockUtils.registerBlockEntity(CODE_CONTROL_BLOCK_ENTITY);
 	}
 }
