@@ -1,7 +1,7 @@
 package io.github.haykam821.codebreaker.game.turn;
 
 import io.github.haykam821.codebreaker.game.phase.CodebreakerActivePhase;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 
 public class NoTurnManager extends TurnManager {
 	public NoTurnManager(CodebreakerActivePhase phase) {
@@ -9,12 +9,12 @@ public class NoTurnManager extends TurnManager {
 	}
 
 	@Override
-	public ServerPlayerEntity getTurn() {
+	public ServerPlayer getTurn() {
 		return null;
 	}
 
 	@Override
-	public boolean isTurn(ServerPlayerEntity player) {
+	public boolean isTurn(ServerPlayer player) {
 		return true;
 	}
 

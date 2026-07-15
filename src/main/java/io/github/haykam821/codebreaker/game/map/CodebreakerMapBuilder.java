@@ -5,15 +5,15 @@ import io.github.haykam821.codebreaker.block.CodeControlBlock;
 import io.github.haykam821.codebreaker.block.CodeControlBlockEntity;
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntryList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.gen.stateprovider.BlockStateProvider;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.map_templates.MapTemplate;
 
@@ -33,10 +33,10 @@ public class CodebreakerMapBuilder {
 	private static final int FLOOR_HEIGHT = 1;
 	private static final int FLOOR_WIDTH_Z = FLOOR_PADDING_Z + CODE_CONTROL_BOARD_PADDING_Z + CODE_CONTROL_END_PADDING_Z + 2;
 
-	private static final BlockState CODE_ORIGIN = Blocks.EMERALD_BLOCK.getDefaultState();
+	private static final BlockState CODE_ORIGIN = Blocks.EMERALD_BLOCK.defaultBlockState();
 
-	private static final BlockState CODE_CONTROL = Main.CODE_CONTROL.getDefaultState().with(CodeControlBlock.FACING, Direction.SOUTH);
-	private static final BlockState BEDROCK = Blocks.BEDROCK.getDefaultState();
+	private static final BlockState CODE_CONTROL = Main.CODE_CONTROL.defaultBlockState().setValue(CodeControlBlock.FACING, Direction.SOUTH);
+	private static final BlockState BEDROCK = Blocks.BEDROCK.defaultBlockState();
 
 	private final CodebreakerConfig config;
 
@@ -44,7 +44,7 @@ public class CodebreakerMapBuilder {
 		this.config = config;
 	}
 
-	public CodebreakerMap create(Random random, Code correctCode, RegistryWrapper.WrapperLookup registries, RegistryEntryList<Block> codePegs) {
+	public CodebreakerMap create(RandomSource random, Code correctCode, HolderLookup.Provider registries, HolderSet<Block> codePegs) {
 		MapTemplate template = MapTemplate.createEmpty();
 
 		CodebreakerMapConfig mapConfig = this.config.getMapConfig();
@@ -65,20 +65,20 @@ public class CodebreakerMapBuilder {
 		int boardStartX = (floorWidthX - boardWidth) / 2;
 		int boardHeight = spaces * 2 + BOARD_PADDING_TOP + BOARD_PADDING_BOTTOM;
 
-		BlockPos boardOrigin = floorOrigin.add(boardStartX, 1, FLOOR_PADDING_Z);
+		BlockPos boardOrigin = floorOrigin.offset(boardStartX, 1, FLOOR_PADDING_Z);
 		BlockBounds boardBounds = createBounds(boardOrigin, boardWidth, boardHeight, 1);
 
 		fillBounds(template, random, boardBounds, mapConfig.getBoardProvider());
 
 		int codeStartY = spaces * 2 + BOARD_PADDING_BOTTOM - 1;
-		BlockPos codeOrigin = boardOrigin.add(BOARD_PADDING_X, codeStartY, 0);
+		BlockPos codeOrigin = boardOrigin.offset(BOARD_PADDING_X, codeStartY, 0);
 
 		template.setBlockState(codeOrigin, CODE_ORIGIN);
 
 		// Code controls
 		int codeControlsStartX = (floorWidthX - codeControls) / 2;
 
-		BlockPos codeControlOrigin = floorOrigin.add(codeControlsStartX, 1, FLOOR_PADDING_Z + 1 + CODE_CONTROL_BOARD_PADDING_Z);
+		BlockPos codeControlOrigin = floorOrigin.offset(codeControlsStartX, 1, FLOOR_PADDING_Z + 1 + CODE_CONTROL_BOARD_PADDING_Z);
 		BlockBounds codeControlBounds = createBounds(codeControlOrigin, codeControls, 1, 1);
 
 		int codeControlIndex = 0;
@@ -97,18 +97,18 @@ public class CodebreakerMapBuilder {
 	}
 
 	private static BlockBounds createBounds(BlockPos origin, int widthX, int height, int widthZ) {
-		return BlockBounds.of(origin, origin.add(widthX - 1, height - 1, widthZ - 1));
+		return BlockBounds.of(origin, origin.offset(widthX - 1, height - 1, widthZ - 1));
 	}
 
-	private static void fillBounds(MapTemplate template, Random random, BlockBounds bounds, BlockStateProvider provider) {
+	private static void fillBounds(MapTemplate template, RandomSource random, BlockBounds bounds, BlockStateProvider provider) {
 		for (BlockPos pos : bounds) {
-			template.setBlockState(pos, provider.get(random, pos));
+			template.setBlockState(pos, provider.getState(null, random, pos));
 		}
 	}
 
-	private static BlockState getCodeControlBlock(RegistryEntryList<Block> codePegs, int index) {
+	private static BlockState getCodeControlBlock(HolderSet<Block> codePegs, int index) {
 		if (index < codePegs.size()) {
-			return codePegs.get(index).value().getDefaultState();
+			return codePegs.get(index).value().defaultBlockState();
 		}
 
 		return BEDROCK;

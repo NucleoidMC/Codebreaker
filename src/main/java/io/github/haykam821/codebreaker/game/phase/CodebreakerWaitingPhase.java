@@ -8,17 +8,17 @@ import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMap;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMapBuilder;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.decoration.DisplayEntity.BillboardMode;
-import net.minecraft.screen.ScreenTexts;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.GameMode;
-import xyz.nucleoid.fantasy.RuntimeWorldConfig;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Display.BillboardConstraints;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.GameType;
+import xyz.nucleoid.fantasy.RuntimeLevelConfig;
 import xyz.nucleoid.plasmid.api.game.GameOpenContext;
 import xyz.nucleoid.plasmid.api.game.GameOpenProcedure;
 import xyz.nucleoid.plasmid.api.game.GameResult;
@@ -33,15 +33,15 @@ import xyz.nucleoid.stimuli.event.EventResult;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
 public class CodebreakerWaitingPhase {
-	private static final Formatting GUIDE_FORMATTING = Formatting.GOLD;
-	private static final Text GUIDE_TEXT = Text.empty()
-		.append(Text.translatable("gameType.codebreaker.codebreaker").formatted(Formatting.BOLD))
-		.append(ScreenTexts.LINE_BREAK)
-		.append(Text.translatable("text.codebreaker.guide"))
-		.formatted(GUIDE_FORMATTING);
+	private static final ChatFormatting GUIDE_FORMATTING = ChatFormatting.GOLD;
+	private static final Component GUIDE_TEXT = Component.empty()
+		.append(Component.translatable("gameType.codebreaker.codebreaker").withStyle(ChatFormatting.BOLD))
+		.append(CommonComponents.NEW_LINE)
+		.append(Component.translatable("text.codebreaker.guide"))
+		.withStyle(GUIDE_FORMATTING);
 
 	private final GameSpace gameSpace;
-	private final ServerWorld world;
+	private final ServerLevel level;
 	private final CodebreakerMap map;
 	private final CodebreakerConfig config;
 
@@ -50,9 +50,9 @@ public class CodebreakerWaitingPhase {
 
 	private HolderAttachment guideText;
 
-	public CodebreakerWaitingPhase(GameSpace gameSpace, ServerWorld world, CodebreakerMap map, CodebreakerConfig config, Code correctCode, boolean duplicatePegs) {
+	public CodebreakerWaitingPhase(GameSpace gameSpace, ServerLevel level, CodebreakerMap map, CodebreakerConfig config, Code correctCode, boolean duplicatePegs) {
 		this.gameSpace = gameSpace;
-		this.world = world;
+		this.level = level;
 		this.map = map;
 		this.config = config;
 
@@ -61,20 +61,20 @@ public class CodebreakerWaitingPhase {
 	}
 
 	public static GameOpenProcedure open(GameOpenContext<CodebreakerConfig> context) {
-		Random random = Random.createLocal();
+		RandomSource random = RandomSource.createThreadLocalInstance();
 		CodebreakerConfig config = context.config();
 
 		Code correctCode = config.getCodeProvider().generate(random, config);
 		boolean duplicatePegs = config.getCodeProvider().hasDuplicatePegs(config);
 
 		CodebreakerMapBuilder mapBuilder = new CodebreakerMapBuilder(config);
-		CodebreakerMap map = mapBuilder.create(random, correctCode, context.server().getRegistryManager(), config.getCodePegs());
+		CodebreakerMap map = mapBuilder.create(random, correctCode, context.server().registryAccess(), config.getCodePegs());
 
-		RuntimeWorldConfig worldConfig = new RuntimeWorldConfig()
+		RuntimeLevelConfig levelConfig = new RuntimeLevelConfig()
 			.setGenerator(map.createGenerator(context.server()));
 
-		return context.openWithWorld(worldConfig, (activity, world) -> {
-			CodebreakerWaitingPhase waiting = new CodebreakerWaitingPhase(activity.getGameSpace(), world, map, config, correctCode, duplicatePegs);
+		return context.openWithLevel(levelConfig, (activity, level) -> {
+			CodebreakerWaitingPhase waiting = new CodebreakerWaitingPhase(activity.getGameSpace(), level, map, config, correctCode, duplicatePegs);
 
 			GameWaitingLobby.addTo(activity, config.getPlayerConfig());
 			CodebreakerActivePhase.setRules(activity);
@@ -91,29 +91,29 @@ public class CodebreakerWaitingPhase {
 	}
 
 	public JoinAcceptorResult onAcceptPlayers(JoinAcceptor acceptor) {
-		return acceptor.teleport(this.world, this.map.getSpawnPos()).thenRunForEach(player -> {
-			player.changeGameMode(GameMode.ADVENTURE);
+		return acceptor.teleport(this.level, this.map.getSpawnPos()).thenRunForEach(player -> {
+			player.setGameMode(GameType.ADVENTURE);
 		});
 	}
 
 	public GameResult requestStart() {
-		CodebreakerActivePhase.open(this.gameSpace, this.world, this.map, this.config, this.guideText, this.correctCode, this.duplicatePegs);
+		CodebreakerActivePhase.open(this.gameSpace, this.level, this.map, this.config, this.guideText, this.correctCode, this.duplicatePegs);
 		return GameResult.ok();
 	}
 
-	public void addPlayer(ServerPlayerEntity player) {
-		CodebreakerActivePhase.spawn(this.world, this.map, player);
+	public void addPlayer(ServerPlayer player) {
+		CodebreakerActivePhase.spawn(this.level, this.map, player);
 	}
 
-	public EventResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
-		CodebreakerActivePhase.spawn(this.world, this.map, player);
+	public EventResult onPlayerDeath(ServerPlayer player, DamageSource source) {
+		CodebreakerActivePhase.spawn(this.level, this.map, player);
 		return EventResult.ALLOW;
 	}
 
 	public void tick() {
-		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
+		for (ServerPlayer player : this.gameSpace.getPlayers()) {
 			if (this.map.isBelowPlatform(player)) {
-				CodebreakerActivePhase.spawn(this.world, this.map, player);
+				CodebreakerActivePhase.spawn(this.level, this.map, player);
 			}
 		}
 	}
@@ -121,14 +121,14 @@ public class CodebreakerWaitingPhase {
 	private void open() {
 		TextDisplayElement element = new TextDisplayElement(GUIDE_TEXT);
 
-		element.setBillboardMode(BillboardMode.CENTER);
+		element.setBillboardMode(BillboardConstraints.CENTER);
 		element.setLineWidth(450);
 
 		ElementHolder holder = new ElementHolder();
 		holder.addElement(element);
 
 		// Spawn guide text
-		Vec3d center = new Vec3d(this.map.getBounds().center().getX(), this.map.getBounds().min().getY() + 2, this.map.getBounds().max().getZ());
-		this.guideText = ChunkAttachment.of(holder, world, center);
+		Vec3 center = new Vec3(this.map.getBounds().center().x(), this.map.getBounds().min().getY() + 2, this.map.getBounds().max().getZ());
+		this.guideText = ChunkAttachment.of(holder, level, center);
 	}
 }

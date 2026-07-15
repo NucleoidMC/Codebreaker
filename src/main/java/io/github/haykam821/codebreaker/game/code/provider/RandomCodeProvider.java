@@ -10,10 +10,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import io.github.haykam821.codebreaker.game.CodebreakerConfig;
 import io.github.haykam821.codebreaker.game.code.Code;
-import net.minecraft.block.Block;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.entry.RegistryEntryList;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.util.RandomSource;
 
 public class RandomCodeProvider implements CodeProvider {
 	public static final MapCodec<RandomCodeProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> {
@@ -28,7 +28,7 @@ public class RandomCodeProvider implements CodeProvider {
 		this.spaces = spaces;
 	}
 
-	public Code generate(Random random, CodebreakerConfig config) {
+	public Code generate(RandomSource random, CodebreakerConfig config) {
 		Code code = new Code(this.spaces);
 		List<Block> allPegs = RandomCodeProvider.getEntryValues(config.getCodePegs());
 
@@ -40,7 +40,7 @@ public class RandomCodeProvider implements CodeProvider {
 			}
 
 			int pegIndex = random.nextInt(pegs.size());
-			code.setPeg(index, pegs.get(pegIndex).getDefaultState());
+			code.setPeg(index, pegs.get(pegIndex).defaultBlockState());
 			pegs.remove(pegIndex);
 		}
 
@@ -62,10 +62,10 @@ public class RandomCodeProvider implements CodeProvider {
 		return "RandomCodeProvider{spaces=" + this.spaces + "}";
 	}
 
-	private static <T> List<T> getEntryValues(RegistryEntryList<T> entries) {
+	private static <T> List<T> getEntryValues(HolderSet<T> entries) {
 		List<T> entryValues = new ArrayList<>(entries.size());
 
-		Iterator<RegistryEntry<T>> iterator = entries.iterator();
+		Iterator<Holder<T>> iterator = entries.iterator();
 		while (iterator.hasNext()) {
 			entryValues.add(iterator.next().value());
 		}

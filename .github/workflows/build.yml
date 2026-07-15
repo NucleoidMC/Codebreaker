@@ -13,7 +13,7 @@ jobs:
       with:
         cache: gradle
         distribution: microsoft
-        java-version: 21
+        java-version: 25
     - name: Build with Gradle
       run: gradle build
     - name: Upload Artifacts

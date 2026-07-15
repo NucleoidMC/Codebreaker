@@ -6,91 +6,91 @@ import com.mojang.serialization.MapCodec;
 
 import eu.pb4.polymer.core.api.block.PolymerBlock;
 import io.github.haykam821.codebreaker.Main;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
-import xyz.nucleoid.packettweaker.PacketContext;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
 
-public class CodeControlBlock extends BlockWithEntity implements PolymerBlock {
-	public static final MapCodec<CodeControlBlock> CODEC = Block.createCodec(CodeControlBlock::new);
+public class CodeControlBlock extends BaseEntityBlock implements PolymerBlock {
+	public static final MapCodec<CodeControlBlock> CODEC = Block.simpleCodec(CodeControlBlock::new);
 
-	public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
+	public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
-	public CodeControlBlock(Block.Settings settings) {
+	public CodeControlBlock(Block.Properties settings) {
 		super(settings);
 
-		this.setDefaultState(this.getDefaultState().with(FACING, Direction.NORTH));
+		this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH));
 	}
 
 	@Override
-	public ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+	public InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
 		Optional<CodeControlBlockEntity> maybeBlockEntity = world.getBlockEntity(pos, Main.CODE_CONTROL_BLOCK_ENTITY);
 
 		if (maybeBlockEntity.isPresent()) {
 			CodeControlBlockEntity blockEntity = maybeBlockEntity.get();
 
 			if (blockEntity.getBlock().isAir() && stack.getItem() instanceof BlockItem blockItem) {
-				BlockState block = blockItem.getBlock().getDefaultState();
+				BlockState block = blockItem.getBlock().defaultBlockState();
 				blockEntity.setBlock(block);
 
-				return ActionResult.SUCCESS_SERVER;
+				return InteractionResult.SUCCESS_SERVER;
 			}
 		}
 
-		return ActionResult.FAIL;
+		return InteractionResult.FAIL;
 	}
 
 	@Override
 	public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
-		return Blocks.LECTERN.getDefaultState().with(FACING, state.get(FACING));
+		return Blocks.LECTERN.defaultBlockState().setValue(FACING, state.getValue(FACING));
 	}
 
 	@Override
-	public BlockState getPlacementState(ItemPlacementContext context) {
-		var facing = context.getHorizontalPlayerFacing().getOpposite();
-		return super.getPlacementState(context).with(FACING, facing);
+	public BlockState getStateForPlacement(BlockPlaceContext context) {
+		var facing = context.getHorizontalDirection().getOpposite();
+		return super.getStateForPlacement(context).setValue(FACING, facing);
 	}
 
 	@Override
-	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(FACING);
 	}
 
 	@Override
-	public BlockRenderType getRenderType(BlockState state) {
-		return BlockRenderType.MODEL;
+	public RenderShape getRenderShape(BlockState state) {
+		return RenderShape.MODEL;
 	}
 
 	@Override
-	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
 		return new CodeControlBlockEntity(pos, state);
 	}
 
 	@Override
-	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-		return world.isClient() ? null : validateTicker(type, Main.CODE_CONTROL_BLOCK_ENTITY, CodeControlBlockEntity::tick);
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> type) {
+		return world.isClientSide() ? null : createTickerHelper(type, Main.CODE_CONTROL_BLOCK_ENTITY, CodeControlBlockEntity::tick);
 	}
 
 	@Override
-	protected MapCodec<? extends CodeControlBlock> getCodec() {
+	protected MapCodec<? extends CodeControlBlock> codec() {
 		return CODEC;
 	}
 }

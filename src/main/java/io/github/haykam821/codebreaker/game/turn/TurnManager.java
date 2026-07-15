@@ -1,9 +1,9 @@
 package io.github.haykam821.codebreaker.game.turn;
 
 import io.github.haykam821.codebreaker.game.phase.CodebreakerActivePhase;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 
 public abstract class TurnManager {
 	protected final CodebreakerActivePhase phase;
@@ -12,9 +12,9 @@ public abstract class TurnManager {
 		this.phase = phase;
 	}
 
-	public abstract ServerPlayerEntity getTurn();
+	public abstract ServerPlayer getTurn();
 
-	public boolean isTurn(ServerPlayerEntity player) {
+	public boolean isTurn(ServerPlayer player) {
 		return player == this.getTurn();
 	}
 
@@ -25,12 +25,12 @@ public abstract class TurnManager {
 	}
 
 	public final void playNextTurnEffects() {
-		Text nextTurnMessage = this.getNextTurnMessage();
+		Component nextTurnMessage = this.getNextTurnMessage();
 		if (nextTurnMessage != null) {
 			this.phase.getGameSpace().getPlayers().sendMessage(nextTurnMessage);
 		}
 
-		ServerPlayerEntity turn = this.getTurn();
+		ServerPlayer turn = this.getTurn();
 		if (turn != null) {
 			TurnSounds.playTurnSounds(turn);
 		}
@@ -41,19 +41,19 @@ public abstract class TurnManager {
 	 */
 	public abstract boolean switchTurn();
 
-	public final Text getNextTurnMessage() {
-		ServerPlayerEntity turn = this.getTurn();
+	public final Component getNextTurnMessage() {
+		ServerPlayer turn = this.getTurn();
 		if (turn == null) return null;
 
-		return Text.translatable("text.codebreaker.next_turn", turn.getDisplayName()).formatted(Formatting.GOLD);
+		return Component.translatable("text.codebreaker.next_turn", turn.getDisplayName()).withStyle(ChatFormatting.GOLD);
 	}
 
-	public final Text getOtherTurnMessage() {
-		ServerPlayerEntity turn = this.getTurn();
+	public final Component getOtherTurnMessage() {
+		ServerPlayer turn = this.getTurn();
 		if (turn == null) {
-			return Text.translatable("text.codebreaker.no_turn").formatted(Formatting.RED);
+			return Component.translatable("text.codebreaker.no_turn").withStyle(ChatFormatting.RED);
 		}
 
-		return Text.translatable("text.codebreaker.other_turn", turn.getDisplayName()).formatted(Formatting.RED);
+		return Component.translatable("text.codebreaker.other_turn", turn.getDisplayName()).withStyle(ChatFormatting.RED);
 	}
 }

@@ -1,10 +1,11 @@
 package io.github.haykam821.codebreaker.game.code;
 
 import io.github.haykam821.codebreaker.game.map.CodebreakerMapConfig;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.WorldAccess;
+import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.LevelAccessor;
 
 public class Code {
 	private final BlockState[] pegs;
@@ -56,11 +57,11 @@ public class Code {
 		return true;
 	}
 
-	public void build(WorldAccess world, BlockPos originPos, CodebreakerMapConfig mapConfig) {
-		BlockPos.Mutable pos = originPos.mutableCopy();
+	public void build(LevelAccessor level, BlockPos originPos, CodebreakerMapConfig mapConfig) {
+		BlockPos.MutableBlockPos pos = originPos.mutable();
 		for (int index = 0; index < this.getLength(); index++) {
 			BlockState state = this.pegs[index];
-			world.setBlockState(pos, state == null ? mapConfig.getBoardProvider().get(world.getRandom(), pos) : state, 3);
+			level.setBlock(pos, state == null ? mapConfig.getBoardProvider().getState((WorldGenLevel) level, level.getRandom(), pos) : state, 3);
 
 			pos.move(Direction.DOWN);
 		}

@@ -14,20 +14,20 @@ import io.github.haykam821.codebreaker.game.code.Code;
 import io.github.haykam821.codebreaker.game.code.ComparedCode;
 import io.github.haykam821.codebreaker.game.map.CodebreakerMap;
 import io.github.haykam821.codebreaker.game.turn.TurnManager;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.GameType;
 import xyz.nucleoid.plasmid.api.game.GameActivity;
 import xyz.nucleoid.plasmid.api.game.GameCloseReason;
 import xyz.nucleoid.plasmid.api.game.GameSpace;
@@ -37,6 +37,7 @@ import xyz.nucleoid.plasmid.api.game.player.JoinAcceptor;
 import xyz.nucleoid.plasmid.api.game.player.JoinAcceptorResult;
 import xyz.nucleoid.plasmid.api.game.player.JoinOffer;
 import xyz.nucleoid.plasmid.api.game.rule.GameRuleType;
+import xyz.nucleoid.plasmid.api.util.PlayerUtil;
 import xyz.nucleoid.stimuli.event.EventResult;
 import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
@@ -44,11 +45,11 @@ import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
 public class CodebreakerActivePhase {
 	private final GameSpace gameSpace;
-	private final ServerWorld world;
+	private final ServerLevel level;
 	private final CodebreakerMap map;
 	private final CodebreakerConfig config;
 	private final HolderAttachment guideText;
-	private final List<ServerPlayerEntity> players;
+	private final List<ServerPlayer> players;
 
 	private final Code correctCode;
 	private final boolean duplicatePegs;
@@ -59,9 +60,9 @@ public class CodebreakerActivePhase {
 	private int ticks = 0;
 	private int ticksUntilClose = -1;
 
-	public CodebreakerActivePhase(GameSpace gameSpace, ServerWorld world, CodebreakerMap map, CodebreakerConfig config, HolderAttachment guideText, List<ServerPlayerEntity> players, Code correctCode, boolean duplicatePegs) {
+	public CodebreakerActivePhase(GameSpace gameSpace, ServerLevel level, CodebreakerMap map, CodebreakerConfig config, HolderAttachment guideText, List<ServerPlayer> players, Code correctCode, boolean duplicatePegs) {
 		this.gameSpace = gameSpace;
-		this.world = world;
+		this.level = level;
 		this.map = map;
 		this.config = config;
 		this.guideText = guideText;
@@ -80,8 +81,8 @@ public class CodebreakerActivePhase {
 		activity.deny(GameRuleType.THROW_ITEMS);
 	}
 
-	public static void open(GameSpace gameSpace, ServerWorld world, CodebreakerMap map, CodebreakerConfig config, HolderAttachment guide, Code correctCode, boolean duplicatePegs) {
-		CodebreakerActivePhase phase = new CodebreakerActivePhase(gameSpace, world, map, config, guide, Lists.newArrayList(gameSpace.getPlayers().participants()), correctCode, duplicatePegs);
+	public static void open(GameSpace gameSpace, ServerLevel level, CodebreakerMap map, CodebreakerConfig config, HolderAttachment guide, Code correctCode, boolean duplicatePegs) {
+		CodebreakerActivePhase phase = new CodebreakerActivePhase(gameSpace, level, map, config, guide, Lists.newArrayList(gameSpace.getPlayers().participants()), correctCode, duplicatePegs);
 
 		gameSpace.setActivity(activity -> {
 			CodebreakerActivePhase.setRules(activity);
@@ -99,9 +100,9 @@ public class CodebreakerActivePhase {
 	}
 
 	private void enable() {
-		for (ServerPlayerEntity player : this.players) {
-			player.changeGameMode(GameMode.ADVENTURE);
-			CodebreakerActivePhase.spawn(this.world, this.map, player);
+		for (ServerPlayer player : this.players) {
+			player.setGameMode(GameType.ADVENTURE);
+			CodebreakerActivePhase.spawn(this.level, this.map, player);
 
 			if (this.turnManager == null) {
 				this.turnManager = config.createTurnManager(this, player);
@@ -109,8 +110,8 @@ public class CodebreakerActivePhase {
 			}
 		}
 
-		for (ServerPlayerEntity player : this.gameSpace.getPlayers().spectators()) {
-			CodebreakerActivePhase.spawn(this.world, this.map, player);
+		for (ServerPlayer player : this.gameSpace.getPlayers().spectators()) {
+			CodebreakerActivePhase.spawn(this.level, this.map, player);
 			this.setSpectator(player);
 		}
 	}
@@ -130,19 +131,19 @@ public class CodebreakerActivePhase {
 			this.guideText.destroy();
 		}
 
-		for (ServerPlayerEntity player : this.players) {
+		for (ServerPlayer player : this.players) {
 			if (this.map.isBelowPlatform(player)) {
-				CodebreakerActivePhase.spawn(this.world, this.map, player);
+				CodebreakerActivePhase.spawn(this.level, this.map, player);
 			}
 		}
 	}
 
 	private void endGame() {
-		this.ticksUntilClose = this.config.getTicksUntilClose().get(this.world.getRandom());
+		this.ticksUntilClose = this.config.getTicksUntilClose().sample(this.level.getRandom());
 	}
 
-	private void endGameWithWinner(ServerPlayerEntity player) {
-		this.gameSpace.getPlayers().sendMessage(Text.translatable("text.codebreaker.win", player.getDisplayName(), this.queuedIndex + 1).formatted(Formatting.GOLD));
+	private void endGameWithWinner(ServerPlayer player) {
+		this.gameSpace.getPlayers().sendMessage(Component.translatable("text.codebreaker.win", player.getDisplayName(), this.queuedIndex + 1).withStyle(ChatFormatting.GOLD));
 		this.endGame();
 	}
 
@@ -150,32 +151,32 @@ public class CodebreakerActivePhase {
 		return this.ticksUntilClose >= 0;
 	}
 
-	public void setSpectator(ServerPlayerEntity player) {
-		player.changeGameMode(GameMode.SPECTATOR);
+	public void setSpectator(ServerPlayer player) {
+		player.setGameMode(GameType.SPECTATOR);
 	}
 
 	private JoinAcceptorResult onAcceptPlayers(JoinAcceptor acceptor) {
-		return acceptor.teleport(this.world, this.map.getSpawnPos()).thenRunForEach(player -> {
-			player.setYaw(180);
+		return acceptor.teleport(this.level, this.map.getSpawnPos()).thenRunForEach(player -> {
+			player.setYRot(180);
 			this.setSpectator(player);
 		});
 	}
 
-	private void submitCode(ServerPlayerEntity player) {
+	private void submitCode(ServerPlayer player) {
 		ComparedCode comparedCode = new ComparedCode(this.queuedCode.getPegs(), this.correctCode);
-		comparedCode.build(this.world, this.map.getCodeOrigin().add(this.queuedIndex, 0, 0), this.config.getMapConfig());
+		comparedCode.build(this.level, this.map.getCodeOrigin().offset(this.queuedIndex, 0, 0), this.config.getMapConfig());
 
 		if (comparedCode.isCorrect()) {
 			this.endGameWithWinner(player);
-			this.gameSpace.getPlayers().playSound(SoundEvents.ENTITY_FIREWORK_ROCKET_SHOOT, SoundCategory.BLOCKS, 1, 1);
+			this.gameSpace.getPlayers().playSound(SoundEvents.FIREWORK_ROCKET_SHOOT, SoundSource.BLOCKS, 1, 1);
 		} else if (this.queuedIndex + 1 >= this.config.getChances()) {
-			this.gameSpace.getPlayers().sendMessage(Text.translatable("text.codebreaker.lose", this.queuedIndex + 1).formatted(Formatting.RED));
-			this.gameSpace.getPlayers().playSound(SoundEvents.ENTITY_CREEPER_DEATH, SoundCategory.BLOCKS, 1, 1);
+			this.gameSpace.getPlayers().sendMessage(Component.translatable("text.codebreaker.lose", this.queuedIndex + 1).withStyle(ChatFormatting.RED));
+			this.gameSpace.getPlayers().playSound(SoundEvents.CREEPER_DEATH, SoundSource.BLOCKS, 1, 1);
 
 			this.endGame();
 		} else {
 			this.turnManager.switchTurnAndPlayEffects();
-			this.gameSpace.getPlayers().playSound(SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1, 1);
+			this.gameSpace.getPlayers().playSound(SoundEvents.CHEST_LOCKED, SoundSource.BLOCKS, 1, 1);
 		}
 
 		this.queuedCode = null;
@@ -186,54 +187,54 @@ public class CodebreakerActivePhase {
 		this.queuedCode = new Code(this.correctCode.getLength());
 	}
 
-	private void eraseQueuedCode(ServerPlayerEntity player) {
+	private void eraseQueuedCode(ServerPlayer player) {
 		this.createQueuedCode();
-		player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), SoundCategory.BLOCKS, 1, 0.5f);
+		PlayerUtil.playSoundToPlayer(player, SoundEvents.NOTE_BLOCK_BIT.value(), SoundSource.BLOCKS, 1, 0.5f);
 	}
 
-	private boolean tryQueueCodePeg(ServerPlayerEntity player, BlockState state) {
+	private boolean tryQueueCodePeg(ServerPlayer player, BlockState state) {
 		if (this.queuedCode == null) {
 			this.createQueuedCode();
 		}
 
 		if (this.queuedCode.setNext(state, this.duplicatePegs)) {
-			player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), SoundCategory.BLOCKS, 1, 2);
+			PlayerUtil.playSoundToPlayer(player, SoundEvents.NOTE_BLOCK_BIT.value(), SoundSource.BLOCKS, 1, 2);
 			return true;
 		}
 
-		player.sendMessage(Text.translatable("text.codebreaker.no_duplicate_pegs").formatted(Formatting.RED), false);
+		player.sendSystemMessage(Component.translatable("text.codebreaker.no_duplicate_pegs").withStyle(ChatFormatting.RED), false);
 		return false;
 	}
 
-	private ActionResult onUseBlock(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
-		if (this.isGameEnding()) return ActionResult.FAIL;
-		if (hand != Hand.MAIN_HAND) return ActionResult.FAIL;
-		if (!this.players.contains(player)) return ActionResult.FAIL;
+	private InteractionResult onUseBlock(ServerPlayer player, InteractionHand hand, BlockHitResult hitResult) {
+		if (this.isGameEnding()) return InteractionResult.FAIL;
+		if (hand != InteractionHand.MAIN_HAND) return InteractionResult.FAIL;
+		if (!this.players.contains(player)) return InteractionResult.FAIL;
 
-		Optional<CodeControlBlockEntity> maybeBlockEntity = world.getBlockEntity(hitResult.getBlockPos(), Main.CODE_CONTROL_BLOCK_ENTITY);
+		Optional<CodeControlBlockEntity> maybeBlockEntity = level.getBlockEntity(hitResult.getBlockPos(), Main.CODE_CONTROL_BLOCK_ENTITY);
 
 		if (maybeBlockEntity.isPresent()) {
 			BlockState state = maybeBlockEntity.get().getBlock();
 
 			if (this.useCodeControl(player, state)) {
 				// Swing hand and notify player
-				player.swingHand(hand, true);
+				player.swing(hand, true);
 			}
 		}
 
-		return ActionResult.FAIL;
+		return InteractionResult.FAIL;
 	}
 
-	private boolean useCodeControl(ServerPlayerEntity player, BlockState state) {
-		boolean erase = state.isOf(Blocks.BEDROCK);
-		boolean validCodeControl = state.isIn(this.config.getCodePegs()) || erase;
+	private boolean useCodeControl(ServerPlayer player, BlockState state) {
+		boolean erase = state.is(Blocks.BEDROCK);
+		boolean validCodeControl = state.is(this.config.getCodePegs()) || erase;
 
 		if (!validCodeControl) {
 			return false;
 		}
 
 		if (!this.turnManager.isTurn(player)) {
-			player.sendMessage(this.turnManager.getOtherTurnMessage(), false);
+			player.sendSystemMessage(this.turnManager.getOtherTurnMessage(), false);
 			return false;
 		}
 	
@@ -246,24 +247,24 @@ public class CodebreakerActivePhase {
 		if (this.queuedCode.isCompletelyFilled()) {
 			this.submitCode(player);
 		} else {
-			this.queuedCode.build(this.world, this.map.getCodeOrigin().add(this.queuedIndex, 0, 0), this.config.getMapConfig());
+			this.queuedCode.build(this.level, this.map.getCodeOrigin().offset(this.queuedIndex, 0, 0), this.config.getMapConfig());
 		}
 
 		return true;
 	}
 
-	private EventResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
+	private EventResult onPlayerDamage(ServerPlayer player, DamageSource source, float amount) {
 		return EventResult.DENY;
 	}
 
-	private EventResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
+	private EventResult onPlayerDeath(ServerPlayer player, DamageSource source) {
 		if (this.players.contains(player)) {
-			CodebreakerActivePhase.spawn(this.world, this.map, player);
+			CodebreakerActivePhase.spawn(this.level, this.map, player);
 		}
 		return EventResult.DENY;
 	}
 
-	private void onPlayerRemove(ServerPlayerEntity player) {
+	private void onPlayerRemove(ServerPlayer player) {
 		if (!this.isGameEnding() && this.players.remove(player) && !this.players.isEmpty()) {
 			this.turnManager.switchTurnAndPlayEffects();
 		}
@@ -277,12 +278,12 @@ public class CodebreakerActivePhase {
 		return this.config;
 	}
 
-	public List<ServerPlayerEntity> getPlayers() {
+	public List<ServerPlayer> getPlayers() {
 		return this.players;
 	}
 
-	public static void spawn(ServerWorld world, CodebreakerMap map, ServerPlayerEntity player) {
-		Vec3d spawnPos = map.getSpawnPos();
-		player.teleport(world, spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), Set.of(), 180, 0, true);
+	public static void spawn(ServerLevel world, CodebreakerMap map, ServerPlayer player) {
+		Vec3 spawnPos = map.getSpawnPos();
+		player.teleportTo(world, spawnPos.x(), spawnPos.y(), spawnPos.z(), Set.of(), 180, 0, true);
 	}
 }
